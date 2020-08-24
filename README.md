@@ -2,8 +2,10 @@
 # Self6D-Diff-Renderer
 This is the code of differentiable rendering used in the work:
 
-**Gu Wang, Fabian Manhardt, Jianzhun Shao, Xiangyang Ji, Nassir Navab, Federico Tombari. Self6D: Self-Supervised Monocular 6D Object Pose Estimation. In ECCV 2020 (oral).**
-[arXiv](https://arxiv.org/abs/2004.06468)
+**Gu Wang\*, Fabian Manhardt\*, Jianzhun Shao, Xiangyang Ji, Nassir Navab, Federico Tombari. Self6D: Self-Supervised Monocular 6D Object Pose Estimation. In ECCV 2020 (oral).**
+[[ArXiv]](https://arxiv.org/abs/2004.06468)
+[[Video]](https://youtu.be/bEtzjb8f430)
+[[Bilibili]](https://www.bilibili.com/video/BV1iV411U77h/)
 
 We mainly extend the implementation of DIB-Renderer from [kaolin](https://github.com/NVIDIAGameWorks/kaolin) to support:
 - perspective projection with real camera intrinsics
