@@ -31,20 +31,14 @@ import torch.nn as nn
 
 ##################################################################
 class TexRender(nn.Module):
-
-    def __init__(self, height, width, filtering='nearest'):
+    def __init__(self, height, width, filtering="nearest"):
         super(TexRender, self).__init__()
 
         self.height = height
         self.width = width
         self.filtering = filtering
 
-    def forward(self,
-                points,
-                cameras,
-                uv_bxpx2,
-                texture_bx3xthxtw,
-                ft_fx3=None):
+    def forward(self, points, cameras, uv_bxpx2, texture_bx3xthxtw, ft_fx3=None):
         """
         points: points_bxpx3, faces_fx3
         cameras: camera_rot_bx3x3, camera_pos_bx3, camera_proj_3x1
@@ -60,8 +54,7 @@ class TexRender(nn.Module):
 
         # camera_rot_bx3x3, camera_pos_bx3, camera_proj_3x1 = cameras
 
-        points3d_bxfx9, points2d_bxfx6, normal_bxfx3 = \
-            perspective_projection(points_bxpx3, faces_fx3, cameras)
+        points3d_bxfx9, points2d_bxfx6, normal_bxfx3 = perspective_projection(points_bxpx3, faces_fx3, cameras)
 
         ################################################################
         # normal
@@ -82,20 +75,14 @@ class TexRender(nn.Module):
         uv_bxfx9 = torch.cat((c0, mask, c1, mask, c2, mask), dim=2)
 
         imfeat, improb_bxhxwx1 = linear_rasterizer(
-            self.width,
-            self.height,
-            points3d_bxfx9,
-            points2d_bxfx6,
-            normalz_bxfx1,
-            uv_bxfx9
+            self.width, self.height, points3d_bxfx9, points2d_bxfx6, normalz_bxfx1, uv_bxfx9
         )
 
         imtexcoords = imfeat[:, :, :, :2]
         hardmask = imfeat[:, :, :, 2:3]
 
         # fragrement shader
-        imrender = fragmentshader(imtexcoords, texture_bx3xthxtw, hardmask,
-                                  filtering=self.filtering)
+        imrender = fragmentshader(imtexcoords, texture_bx3xthxtw, hardmask, filtering=self.filtering)
 
         # return imrender, improb_bxhxwx1, normal1_bxfx3
         return imrender, improb_bxhxwx1, normal1_bxfx3, hardmask

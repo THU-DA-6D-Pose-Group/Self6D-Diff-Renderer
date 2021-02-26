@@ -38,29 +38,27 @@ import torch.nn as nn
 
 # renderers = {'VertexColor': VCRender, 'Lambertian': Lambertian, 'SphericalHarmonics': SHRender, 'Phong': PhongRender}
 renderers = {
-    'VertexColor': VCRender,
+    "VertexColor": VCRender,
     "VertexColorMulti": VCRenderMulti,
     "VertexColorBatch": VCRenderBatch,
-    'Lambertian': Lambertian,
+    "Lambertian": Lambertian,
     "Texture": Lambertian,  # alias
     "TextureMulti": TexRenderMulti,
     "TextureBatch": TexRenderBatch,
-    'SphericalHarmonics': SHRender,
-    'Phong': PhongRender
+    "SphericalHarmonics": SHRender,
+    "Phong": PhongRender,
 }
 
 
 class Renderer(nn.Module):
-
-    def __init__(self, height, width, mode='VertexColor', camera_center=None,
-                 camera_up=None, camera_fov_y=None):
+    def __init__(self, height, width, mode="VertexColor", camera_center=None, camera_up=None, camera_fov_y=None):
         super(Renderer, self).__init__()
         assert mode in renderers, "Passed mode {0} must in in list of accepted modes: {1}".format(mode, renderers)
         self.mode = mode
 
         yz_flip = np.eye(3, dtype=np.float32)
         yz_flip[1, 1], yz_flip[2, 2] = -1, -1
-        self.yz_flip = torch.tensor(yz_flip, device='cuda:0')
+        self.yz_flip = torch.tensor(yz_flip, device="cuda:0")
 
         self.renderer = renderers[mode](height, width)
         if camera_center is None:
@@ -74,14 +72,19 @@ class Renderer(nn.Module):
     def forward(self, points, *args, **kwargs):
 
         if self.camera_params is None:
-            print('Camera parameters have not been set, default perspective parameters of distance = 1, elevation = 30, azimuth = 0 are being used')
+            print(
+                "Camera parameters have not been set, default perspective parameters of distance = 1, elevation = 30, azimuth = 0 are being used"
+            )
             self.set_look_at_parameters([0], [30], [1])
 
-        if self.mode in ['VertexColorMulti', 'VertexColorBatch', "TextureMulti", "TextureBatch"]:
-            assert self.camera_params[0].shape[0] == len(points), \
-                "multi mode need the same length of camera parameters and points"
+        if self.mode in ["VertexColorMulti", "VertexColorBatch", "TextureMulti", "TextureBatch"]:
+            assert self.camera_params[0].shape[0] == len(
+                points
+            ), "multi mode need the same length of camera parameters and points"
         else:
-            assert self.camera_params[0].shape[0] == points[0].shape[0], "Set camera parameters batch size must equal\
+            assert (
+                self.camera_params[0].shape[0] == points[0].shape[0]
+            ), "Set camera parameters batch size must equal\
                 batch size of passed points"
 
         return self.renderer(points, self.camera_params, *args, **kwargs)
@@ -105,7 +108,7 @@ class Renderer(nn.Module):
     def set_camera_parameters(self, parameters):
         self.camera_params = parameters
 
-    def set_camera_parameters_from_RT_K(self, Rs, ts, Ks, height, width, near=0.01, far=10.0, rot_type='mat'):
+    def set_camera_parameters_from_RT_K(self, Rs, ts, Ks, height, width, near=0.01, far=10.0, rot_type="mat"):
         """
         Rs: a list of rotations tensor
         ts: a list of translations tensor
@@ -121,11 +124,10 @@ class Renderer(nn.Module):
         camera_projection_mtx = perspectiveprojectionnp(fov_y,
                 ratio=aspect_ratio, near=near, far=far)
         """
-        assert rot_type in ['mat', 'quat'], rot_type
+        assert rot_type in ["mat", "quat"], rot_type
         bs = len(Rs)
         single_K = False
-        if not isinstance(Ks, list) \
-                or (isinstance(Ks, (np.ndarray, torch.Tensor)) and Ks.ndim == 2):
+        if not isinstance(Ks, list) or (isinstance(Ks, (np.ndarray, torch.Tensor)) and Ks.ndim == 2):
             K = Ks
             camera_proj_mtx = projectiveprojection_real(K, 0, 0, width, height, near, far)
             camera_proj_mtx = torch.as_tensor(camera_proj_mtx).float().cuda()  # 4x4
@@ -139,10 +141,10 @@ class Renderer(nn.Module):
             R = Rs[i]
             t = ts[i]
             if not isinstance(R, torch.Tensor):
-                R = torch.tensor(R, dtype=torch.float32, device='cuda:0')
+                R = torch.tensor(R, dtype=torch.float32, device="cuda:0")
             if not isinstance(t, torch.Tensor):
-                t = torch.tensor(t, dtype=torch.float32, device='cuda:0')
-            if rot_type == 'quat':
+                t = torch.tensor(t, dtype=torch.float32, device="cuda:0")
+            if rot_type == "quat":
                 R = quat2mat_torch(R.unsqueeze(0))[0]
             cam_view_R = torch.matmul(self.yz_flip.to(R), R)
             cam_view_t = -torch.matmul(R.t(), t)  # cam pos

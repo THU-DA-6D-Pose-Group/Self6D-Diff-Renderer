@@ -53,8 +53,7 @@ class VCRender(nn.Module):
 
         # camera_rot_bx3x3, camera_pos_bx3, camera_proj_3x1 = cameras
 
-        points3d_bxfx9, points2d_bxfx6, normal_bxfx3 = \
-            perspective_projection(points_bxpx3, faces_fx3, cameras)
+        points3d_bxfx9, points2d_bxfx6, normal_bxfx3 = perspective_projection(points_bxpx3, faces_fx3, cameras)
 
         ################################################################
         # normal
@@ -75,12 +74,7 @@ class VCRender(nn.Module):
         color_bxfx12 = torch.cat((c0, mask, c1, mask, c2, mask), dim=2)
 
         imfeat, improb_bxhxwx1 = linear_rasterizer(
-            self.width,
-            self.height,
-            points3d_bxfx9,
-            points2d_bxfx6,
-            normalz_bxfx1,
-            color_bxfx12
+            self.width, self.height, points3d_bxfx9, points2d_bxfx6, normalz_bxfx1, color_bxfx12
         )
 
         imrender = imfeat[:, :, :, :3]

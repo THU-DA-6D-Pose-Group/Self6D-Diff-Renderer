@@ -43,12 +43,11 @@ class VCRenderMulti(nn.Module):
             # first, MVP projection in vertexshader
             points_1xpx3, faces_fx3 = points[i]
             if single_intrinsic:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2]]
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2]]
             else:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2][i]]
-            cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2]]
-            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = \
-                perspective_projection(points_1xpx3, faces_fx3, cam_params)
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2][i]]
+            cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2]]
+            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = perspective_projection(points_1xpx3, faces_fx3, cam_params)
 
             ################################################################
             # normal
@@ -83,18 +82,30 @@ class VCRenderMulti(nn.Module):
         color_1xFx12 = torch.cat(color_1xfx12_list, dim=1)
 
         if True:
-            imfeat, improb_1xhxwx1 = linear_rasterizer(self.width, self.height, points3d_1xFx9, points2d_1xFx6,
-                                                       normalz_1xFx1, color_1xFx12)
+            imfeat, improb_1xhxwx1 = linear_rasterizer(
+                self.width, self.height, points3d_1xFx9, points2d_1xFx6, normalz_1xFx1, color_1xFx12
+            )
         else:  # debug
-            imfeat, improb_1xhxwx1 = linear_rasterizer(self.width, self.height, points3d_1xFx9, points2d_1xFx6,
-                                                       normalz_1xFx1, color_1xFx12, 0.02, 30, 1000, 7000,
-                                                       True)  # the last one is debug
+            imfeat, improb_1xhxwx1 = linear_rasterizer(
+                self.width,
+                self.height,
+                points3d_1xFx9,
+                points2d_1xFx6,
+                normalz_1xFx1,
+                color_1xFx12,
+                0.02,
+                30,
+                1000,
+                7000,
+                True,
+            )  # the last one is debug
         imrender = imfeat[:, :, :, :3]  # (1,H,W,3), rgb
         hardmask = imfeat[:, :, :, 3:]  # (1,H,W,1) mask
         if False:
             import cv2
+
             hardmask_cpu = hardmask.detach().cpu().numpy()[0][:, :, 0]
-            cv2.imshow('hardmask', hardmask_cpu)
+            cv2.imshow("hardmask", hardmask_cpu)
 
         # return imrender, improb_1xhxwx1, normal1_1xFx3
         return imrender, improb_1xhxwx1, normal1_1xFx3, hardmask

@@ -1,9 +1,9 @@
-'''
+"""
 ref:
 https://github.com/ClementPinard/SfmLearner-Pytorch/blob/master/inverse_warp.py
 https://github.com/facebookresearch/QuaterNet/blob/master/common/quaternion.py
 https://github.com/arraiyopensource/kornia/blob/master/kornia/geometry/conversions.py
-'''
+"""
 from __future__ import division
 import numpy as np
 
@@ -75,7 +75,7 @@ def qrot_points_th(q, points):
     return points_q
 
 
-def euler2quat_torch(ai, aj, ak, axes='sxyz'):
+def euler2quat_torch(ai, aj, ak, axes="sxyz"):
     """
     slower than numpy version
     batch
@@ -131,8 +131,8 @@ def euler2quat_torch(ai, aj, ak, axes='sxyz'):
     return q
 
 
-def quat2euler_torch(q, order='zyx', epsilon=0):
-    """ NOTE: zyx is the same as sxyz in transforms3d
+def quat2euler_torch(q, order="zyx", epsilon=0):
+    """NOTE: zyx is the same as sxyz in transforms3d
     https://github.com/facebookresearch/QuaterNet/blob/master/common/quaternion.py
     # i,j,k ==> zyx
     Convert quaternion(s) q to Euler angles.
@@ -154,27 +154,27 @@ def quat2euler_torch(q, order='zyx', epsilon=0):
     q2 = q[:, 2]
     q3 = q[:, 3]
 
-    if order == 'xyz':
+    if order == "xyz":
         x = torch.atan2(2 * (q0 * q1 - q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2))
         y = torch.asin(torch.clamp(2 * (q1 * q3 + q0 * q2), -1 + epsilon, 1 - epsilon))
         z = torch.atan2(2 * (q0 * q3 - q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3))
-    elif order == 'yzx':
+    elif order == "yzx":
         x = torch.atan2(2 * (q0 * q1 - q2 * q3), 1 - 2 * (q1 * q1 + q3 * q3))
         y = torch.atan2(2 * (q0 * q2 - q1 * q3), 1 - 2 * (q2 * q2 + q3 * q3))
         z = torch.asin(torch.clamp(2 * (q1 * q2 + q0 * q3), -1 + epsilon, 1 - epsilon))
-    elif order == 'zxy':
+    elif order == "zxy":
         x = torch.asin(torch.clamp(2 * (q0 * q1 + q2 * q3), -1 + epsilon, 1 - epsilon))
         y = torch.atan2(2 * (q0 * q2 - q1 * q3), 1 - 2 * (q1 * q1 + q2 * q2))
         z = torch.atan2(2 * (q0 * q3 - q1 * q2), 1 - 2 * (q1 * q1 + q3 * q3))
-    elif order == 'xzy':
+    elif order == "xzy":
         x = torch.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q3 * q3))
         y = torch.atan2(2 * (q0 * q2 + q1 * q3), 1 - 2 * (q2 * q2 + q3 * q3))
         z = torch.asin(torch.clamp(2 * (q0 * q3 - q1 * q2), -1 + epsilon, 1 - epsilon))
-    elif order == 'yxz':
+    elif order == "yxz":
         x = torch.asin(torch.clamp(2 * (q0 * q1 - q2 * q3), -1 + epsilon, 1 - epsilon))
         y = torch.atan2(2 * (q1 * q3 + q0 * q2), 1 - 2 * (q1 * q1 + q2 * q2))
         z = torch.atan2(2 * (q1 * q2 + q0 * q3), 1 - 2 * (q1 * q1 + q3 * q3))
-    elif order == 'zyx':
+    elif order == "zyx":
         x = torch.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2))
         y = torch.asin(torch.clamp(2 * (q0 * q2 - q1 * q3), -1 + epsilon, 1 - epsilon))
         z = torch.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3))
@@ -199,8 +199,9 @@ def check_sizes(input, input_name, expected):
     for i, size in enumerate(expected):
         if size.isdigit():
             condition.append(input.size(i) == int(size))
-    assert (all(condition)), "wrong size for {}, expected {}, got  {}".format(input_name, 'x'.join(expected),
-                                                                              list(input.size()))
+    assert all(condition), "wrong size for {}, expected {}, got  {}".format(
+        input_name, "x".join(expected), list(input.size())
+    )
 
 
 def pixel2cam(depth, intrinsics_inv):
@@ -282,7 +283,7 @@ def euler2mat_torch(angle):
 
 
 def axangle2mat_torch(axis, angle, is_normalized=False):
-    ''' Rotation matrix for rotation angle `angle` around `axis`
+    """Rotation matrix for rotation angle `angle` around `axis`
 
     Parameters
     ----------
@@ -301,7 +302,7 @@ def axangle2mat_torch(axis, angle, is_normalized=False):
     Notes
     -----
     From: http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle
-    '''
+    """
     B = axis.shape[0]
 
     if not is_normalized:
@@ -318,8 +319,9 @@ def axangle2mat_torch(axis, angle, is_normalized=False):
     xC  = x * C;   yC = y * C;   zC = z * C  # noqa
     xyC = x * yC; yzC = y * zC; zxC = z * xC  # noqa
     # yapf: enable
-    return torch.stack([x * xC + c, xyC - zs, zxC + ys, xyC + zs, y * yC + c, yzC - xs, zxC - ys, yzC + xs, z * zC + c],
-                       dim=1).reshape(B, 3, 3)
+    return torch.stack(
+        [x * xC + c, xyC - zs, zxC + ys, xyC + zs, y * yC + c, yzC - xs, zxC - ys, yzC + xs, z * zC + c], dim=1
+    ).reshape(B, 3, 3)
 
 
 def quat2mat_torch(quat):
@@ -351,8 +353,8 @@ def quat2mat_torch(quat):
     yZ = qy * Z
     zZ = qz * Z
     rotMat = torch.stack(
-        [1.0 - (yY + zZ), xY - wZ, xZ + wY, xY + wZ, 1.0 - (xX + zZ), yZ - wX, xZ - wY, yZ + wX, 1.0 - (xX + yY)],
-        dim=1).reshape(B, 3, 3)
+        [1.0 - (yY + zZ), xY - wZ, xZ + wY, xY + wZ, 1.0 - (xX + zZ), yZ - wX, xZ - wY, yZ + wX, 1.0 - (xX + yY)], dim=1
+    ).reshape(B, 3, 3)
 
     # rotMat = torch.stack([
     #     qw * qw + qx * qx - qy * qy - qz * qz, 2 * (qx * qy - qw * qz), 2 * (qx * qz + qw * qy),
@@ -370,7 +372,7 @@ def quat2mat_torch(quat):
     return rotMat
 
 
-def pose_vec2mat(vec, rotation_mode='quat'):
+def pose_vec2mat(vec, rotation_mode="quat"):
     """
     Convert 6DoF parameters to transformation matrix.
     Args:s
@@ -380,11 +382,11 @@ def pose_vec2mat(vec, rotation_mode='quat'):
     Returns:
         A transformation matrix -- [B, 3, 4]
     """
-    if rotation_mode == 'euler':
+    if rotation_mode == "euler":
         rot = vec[:, :3]
         translation = vec[:, 3:6].unsqueeze(-1)  # [B, 3, 1]
         rot_mat = euler2mat_torch(rot)  # [B, 3, 3]
-    elif rotation_mode == 'quat':
+    elif rotation_mode == "quat":
         rot = vec[:, :4]
         translation = vec[:, 4:7].unsqueeze(-1)  # [B, 3, 1]
         rot_mat = quat2mat_torch(rot)  # [B, 3, 3]
@@ -392,7 +394,7 @@ def pose_vec2mat(vec, rotation_mode='quat'):
     return transform_mat
 
 
-def inverse_warp(img, depth, pose, intrinsics, rotation_mode='euler', padding_mode='zeros'):
+def inverse_warp(img, depth, pose, intrinsics, rotation_mode="euler", padding_mode="zeros"):
     """
     Inverse warp a source image to the target image plane.
     Args:
@@ -404,10 +406,10 @@ def inverse_warp(img, depth, pose, intrinsics, rotation_mode='euler', padding_mo
         projected_img: Source image warped to the target image plane
         valid_points: Boolean array indicating point validity
     """
-    check_sizes(img, 'img', 'B3HW')
-    check_sizes(depth, 'depth', 'BHW')
-    check_sizes(pose, 'pose', 'B6')
-    check_sizes(intrinsics, 'intrinsics', 'B33')
+    check_sizes(img, "img", "B3HW")
+    check_sizes(depth, "depth", "BHW")
+    check_sizes(pose, "pose", "B6")
+    check_sizes(intrinsics, "intrinsics", "B33")
 
     batch_size, _, img_height, img_width = img.size()
 
@@ -427,16 +429,16 @@ def inverse_warp(img, depth, pose, intrinsics, rotation_mode='euler', padding_mo
     return projected_img, valid_points
 
 
-def R_transform_th(R_src, R_delta, rot_coord='CAMERA'):
+def R_transform_th(R_src, R_delta, rot_coord="CAMERA"):
     """transform R_src use R_delta.
     :param R_src: matrix
     :param R_delta:
     :param rot_coord:
     :return:
     """
-    if rot_coord.lower() == 'model':
+    if rot_coord.lower() == "model":
         R_output = torch.matmul(R_src, R_delta)
-    elif rot_coord.lower() == 'camera' or rot_coord.lower() == 'naive' or rot_coord.lower() == 'camera_new':
+    elif rot_coord.lower() == "camera" or rot_coord.lower() == "naive" or rot_coord.lower() == "camera_new":
         # dR_m2c x R_src_m2c
         R_output = torch.matmul(R_delta, R_src)
     else:
@@ -445,7 +447,7 @@ def R_transform_th(R_src, R_delta, rot_coord='CAMERA'):
 
 
 def T_transform_batch(T_src, T_delta, zoom_factor, labels_pred=None):
-    '''inv_zoom T_delta; T_delta + T_src --> T_tgt.
+    """inv_zoom T_delta; T_delta + T_src --> T_tgt.
     T_src: [B, 3] (x1, y1, z1)
     T_delta: [B, 3xnum_classes] (dx, dy, dz)
     zoom_factor: [B, 4]
@@ -456,10 +458,10 @@ def T_transform_batch(T_src, T_delta, zoom_factor, labels_pred=None):
             affine_matrix = [[wx, 0, tx], [0, wy, ty]]
     ---------
     T_tgt: [B, 3] (x2, y2, z2)
-    '''
+    """
     batch_size = T_delta.shape[0]
     if T_delta.shape[1] > 3:  # class aware
-        assert labels_pred is not None, 'labels_pred should not be None when class aware'
+        assert labels_pred is not None, "labels_pred should not be None when class aware"
         inds = torch.arange(0, batch_size, dtype=torch.long, device=T_delta.device)
         T_delta_selected = T_delta.view(batch_size, -1, 3)[inds, labels_pred]  # [B, 3]
     else:
@@ -518,8 +520,9 @@ def RT_transform_batch_cpu(quaternion_delta, translation, poses_src):
             poses_tgt[i, 2:] = 0
         else:
             poses_tgt[i, 2:6] = mat2quat(
-                np.dot(quat2mat(quaternion_delta[i, 4 * cls:4 * cls + 4]), quat2mat(poses_src[i, 2:6])))
-            poses_tgt[i, 6:] = translation[i, 3 * cls:3 * cls + 3]
+                np.dot(quat2mat(quaternion_delta[i, 4 * cls : 4 * cls + 4]), quat2mat(poses_src[i, 2:6]))
+            )
+            poses_tgt[i, 6:] = translation[i, 3 * cls : 3 * cls + 3]
     return poses_tgt
 
 
@@ -586,11 +589,11 @@ def calc_se3_torch_batch(poses_src, poses_tgt):
 def blender_euler_to_blender_pose(euler):
     euler_0 = (-euler[0] + 90) % 360
     euler_1 = euler[1] + 90
-    return euler2mat(euler_0 * np.pi / 180, euler_1 * np.pi / 180, euler[2] * np.pi / 180, axes='szxz')
+    return euler2mat(euler_0 * np.pi / 180, euler_1 * np.pi / 180, euler[2] * np.pi / 180, axes="szxz")
 
 
 def blender_pose_to_blender_euler(pose):
-    euler = [r / np.pi * 180 for r in mat2euler(pose, axes='szxz')]
+    euler = [r / np.pi * 180 for r in mat2euler(pose, axes="szxz")]
     euler[0] = -(euler[0] + 90) % 360
     euler[1] = euler[1] - 90
     return np.array(euler)
@@ -600,15 +603,18 @@ def blender_pose_to_blender_euler(pose):
 # NOTE: tests
 def test_calc_se3_torch():
     from lib.pysixd.RT_transform import calc_se3
+
     B = 8
-    device = 'cuda'
+    device = "cuda"
 
     def to_tensor(a):
         return torch.tensor(a, dtype=torch.float32, device=device)
 
     np.random.seed(1)
     axis = np.random.rand(B, 3)
-    angle = np.random.rand(B,)
+    angle = np.random.rand(
+        B,
+    )
     axis_tensor = to_tensor(axis)
     angle_tensor = to_tensor(angle)
     mat_torch = axangle2mat_torch(axis_tensor, angle_tensor, is_normalized=False)
@@ -616,7 +622,9 @@ def test_calc_se3_torch():
     RT1[:, :3, :3] = mat_torch
 
     axis = np.random.rand(B, 3)
-    angle = np.random.rand(B,)
+    angle = np.random.rand(
+        B,
+    )
     axis_tensor = to_tensor(axis)
     angle_tensor = to_tensor(angle)
     mat_torch = axangle2mat_torch(axis_tensor, angle_tensor, is_normalized=False)
@@ -624,6 +632,7 @@ def test_calc_se3_torch():
     RT2[:, :3, :3] = mat_torch
     runs = 10000
     import time
+
     t1 = time.time()
     for _ in range(runs):
         se3_numpy = []
@@ -631,19 +640,19 @@ def test_calc_se3_torch():
             se3_r, se3_t = calc_se3(RT1[i].cpu().numpy(), RT2[i].cpu().numpy())
             se3_numpy.append(np.hstack([se3_r, se3_t.reshape((3, 1))]))
         se3_numpy = np.array(se3_numpy)
-    print('numpy: {}s'.format((time.time() - t1) / runs))
+    print("numpy: {}s".format((time.time() - t1) / runs))
 
     t2 = time.time()
     for _ in range(runs):
         se3_torch_single = torch.empty_like(RT1)
         for i in range(B):
             se3_torch_single[i] = calc_se3_torch(RT1[i], RT2[i])
-    print('torch_single: {}s'.format((time.time() - t2) / runs))
+    print("torch_single: {}s".format((time.time() - t2) / runs))
 
     t3 = time.time()
     for _ in range(runs):
         se3_torch = calc_se3_torch_batch(RT1, RT2)
-    print('torch: {}s'.format((time.time() - t3) / runs))
+    print("torch: {}s".format((time.time() - t3) / runs))
 
     print(np.allclose(se3_numpy, se3_torch.cpu().numpy()))
     print(torch.allclose(se3_torch_single, se3_torch))
@@ -658,7 +667,7 @@ def test_calc_se3_torch():
 
 def test_pose_vec2mat():
     B = 8
-    qt1 = torch.rand(B, 7).to('cuda', torch.float32)
+    qt1 = torch.rand(B, 7).to("cuda", torch.float32)
     RT1 = pose_vec2mat(qt1)
 
     RT_np = []
@@ -677,14 +686,16 @@ def test_pose_vec2mat():
 
 def test_axangle2mat_torch():
     B = 8
-    device = 'cuda'
+    device = "cuda"
 
     def to_tensor(a):
         return torch.tensor(a, dtype=torch.float32, device=device)
 
     np.random.seed(1)
     axis = np.random.rand(B, 3)
-    angle = np.random.rand(B,)
+    angle = np.random.rand(
+        B,
+    )
     axis_tensor = to_tensor(axis)
     angle_tensor = to_tensor(angle)
     mat_torch = axangle2mat_torch(axis_tensor, angle_tensor, is_normalized=False)
@@ -722,7 +733,7 @@ def test_euler2quat():
     euler = np.array(euler)
 
     # torch
-    quat_torch = torch.from_numpy(quat).to('cuda')
+    quat_torch = torch.from_numpy(quat).to("cuda")
     euler_torch = quat2euler_torch(quat_torch)
     print(euler_torch)
     print(euler)
@@ -734,11 +745,12 @@ def test_euler2quat():
     """
     runs = 10000
     import time
+
     t1 = time.time()
     for _ in range(runs):
         quat_from_euler_torch = euler2quat_torch(euler_torch[:, 0], euler_torch[:, 1], euler_torch[:, 2])
         # print(quat_from_euler_torch.shape)
-    print('torch ', (time.time() - t1) / runs)
+    print("torch ", (time.time() - t1) / runs)
 
     euler_np = euler_torch.cpu().numpy()
     quat_from_euler_np = torch.zeros_like(quat_torch)
@@ -746,12 +758,11 @@ def test_euler2quat():
     for _ in range(runs):
         for i in range(B):
             quat_from_euler_np[i].copy_(torch.tensor(euler2quat(euler_np[i, 0], euler_np[i, 1], euler_np[i, 2])))
-    print('numpy ', (time.time() - t1) / runs)
+    print("numpy ", (time.time() - t1) / runs)
     print(np.allclose(quat_from_euler_np.cpu().numpy(), quat_from_euler_torch.cpu().numpy()))
     print(quat_from_euler_np)
     print(quat_from_euler_torch)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

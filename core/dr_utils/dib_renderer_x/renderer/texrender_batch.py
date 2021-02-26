@@ -12,20 +12,14 @@ import numpy as np
 
 ##################################################################
 class TexRenderBatch(nn.Module):
-
-    def __init__(self, height, width, filtering='nearest'):
+    def __init__(self, height, width, filtering="nearest"):
         super(TexRenderBatch, self).__init__()
 
         self.height = height
         self.width = width
         self.filtering = filtering
 
-    def forward(self,
-                points,
-                cameras,
-                uv_bxpx2,
-                texture_bx3xthxtw,
-                ft_fx3=None):
+    def forward(self, points, cameras, uv_bxpx2, texture_bx3xthxtw, ft_fx3=None):
         """
         points: b x [points_1xpx3, faces_fx3]
         cameras: [camera_rot_bx3x3, camera_pos_bx3, camera_proj_3x1]
@@ -51,17 +45,16 @@ class TexRenderBatch(nn.Module):
             # first, MVP projection in vertexshader
             points_1xpx3, faces_fx3 = points[i]
             if single_intrinsic:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2]]
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2]]
             else:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2][i]]
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2][i]]
             # use faces_fx3 as ft_fx3 if not given
             if ft_fx3 is None:
                 ft_fx3_single = faces_fx3
             else:
                 ft_fx3_single = ft_fx3[i]
 
-            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = \
-                perspective_projection(points_1xpx3, faces_fx3, cam_params)
+            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = perspective_projection(points_1xpx3, faces_fx3, cam_params)
 
             ################################################################
             # normal
@@ -99,9 +92,14 @@ class TexRenderBatch(nn.Module):
         ren_masks = []
         ren_probs = []
         for i in range(b):
-            imfeat, improb_1xhxwx1_i = linear_rasterizer(self.width, self.height, points3d_1xfx9_list[i],
-                                                         points2d_1xfx6_list[i], normalz_1xfx1_list[i],
-                                                         uv_1xfx9_list[i])
+            imfeat, improb_1xhxwx1_i = linear_rasterizer(
+                self.width,
+                self.height,
+                points3d_1xfx9_list[i],
+                points2d_1xfx6_list[i],
+                normalz_1xfx1_list[i],
+                uv_1xfx9_list[i],
+            )
             imtexcoords = imfeat[:, :, :, :2]  # (1,H,W,2)
             hardmask = imfeat[:, :, :, 2:3]  # (1,H,W,1) mask
             # fragrement shader

@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import os.path as osp
 from tqdm import tqdm
+
 # from kaolin.rep import TriangleMesh
 # from kaolin.graphics import DIBRenderer
 from .rep import TriangleMesh

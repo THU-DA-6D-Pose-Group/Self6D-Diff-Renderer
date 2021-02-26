@@ -28,15 +28,10 @@ from .interpolation import texinterpolation
 
 
 ################################################
-def fragmentshader(imtexcoord_bxhxwx2,
-                   texture_bx3xthxtw,
-                   improb_bxhxwx1,
-                   filtering='nearest'):
+def fragmentshader(imtexcoord_bxhxwx2, texture_bx3xthxtw, improb_bxhxwx1, filtering="nearest"):
 
     # interpolation
-    texcolor_bxhxwx3 = texinterpolation(imtexcoord_bxhxwx2,
-                                        texture_bx3xthxtw,
-                                        filtering=filtering)
+    texcolor_bxhxwx3 = texinterpolation(imtexcoord_bxhxwx2, texture_bx3xthxtw, filtering=filtering)
 
     # mask
     color = texcolor_bxhxwx3 * improb_bxhxwx1

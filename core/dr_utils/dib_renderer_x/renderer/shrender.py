@@ -31,7 +31,6 @@ import torch.nn as nn
 
 ##################################################################
 class SHRender(nn.Module):
-
     def __init__(self, height, width):
         super(SHRender, self).__init__()
 
@@ -45,19 +44,13 @@ class SHRender(nn.Module):
         self.smooth = True
         self.pfmtx = pfmtx
 
-    def forward(self,
-                points,
-                cameras,
-                uv_bxpx2,
-                texture_bx3xthxtw,
-                lightparam,
-                ft_fx3=None):
+    def forward(self, points, cameras, uv_bxpx2, texture_bx3xthxtw, lightparam, ft_fx3=None):
         """
         points: [points_bxpx3, faces_fx3]
         cameras: camera parameters
             [camera_rot_bx3x3, camera_pos_bx3, camera_proj_3x1]
         """
-        assert lightparam is not None, 'When using the Spherical Harmonics model, light parameters must be passed'
+        assert lightparam is not None, "When using the Spherical Harmonics model, light parameters must be passed"
 
         ##############################################################
         # first, MVP projection in vertexshader
@@ -69,8 +62,7 @@ class SHRender(nn.Module):
 
         # camera_rot_bx3x3, camera_pos_bx3, camera_proj_3x1 = cameras
 
-        points3d_bxfx9, points2d_bxfx6, normal_bxfx3 = \
-            perspective_projection(points_bxpx3, faces_fx3, cameras)
+        points3d_bxfx9, points2d_bxfx6, normal_bxfx3 = perspective_projection(points_bxpx3, faces_fx3, cameras)
 
         ################################################################
         # normal
@@ -102,16 +94,16 @@ class SHRender(nn.Module):
         c1 = uv_bxpx2[:, ft_fx3[:, 1], :]
         c2 = uv_bxpx2[:, ft_fx3[:, 2], :]
         mask = torch.ones_like(c0[:, :, :1])
-        uv_bxfx3x3 = torch.cat(
-            (c0, mask, c1, mask, c2, mask), dim=2).view(bnum, fnum, 3, -1)
+        uv_bxfx3x3 = torch.cat((c0, mask, c1, mask, c2, mask), dim=2).view(bnum, fnum, 3, -1)
 
         # normal
         normal_bxfx3x3 = normal_bxfx9.view(bnum, fnum, 3, -1)
         feat = torch.cat((normal_bxfx3x3, uv_bxfx3x3), dim=3)
         feat = feat.view(bnum, fnum, -1)
 
-        imfeat, improb_bxhxwx1 = linear_rasterizer(self.width, self.height, points3d_bxfx9, points2d_bxfx6,
-                                                   normalz_bxfx1, feat)
+        imfeat, improb_bxhxwx1 = linear_rasterizer(
+            self.width, self.height, points3d_bxfx9, points2d_bxfx6, normalz_bxfx1, feat
+        )
         imnormal_bxhxwx3 = imfeat[:, :, :, :3]
         imtexcoords = imfeat[:, :, :, 3:5]
         hardmask = imfeat[:, :, :, 5:]
@@ -120,8 +112,7 @@ class SHRender(nn.Module):
         # fragrement shader
         # parallel light
         imnormal1_bxhxwx3 = datanormalize(imnormal_bxhxwx3, axis=3)
-        imrender = fragmentshader(
-            imnormal1_bxhxwx3, lightparam, imtexcoords, texture_bx3xthxtw, hardmask)
+        imrender = fragmentshader(imnormal1_bxhxwx3, lightparam, imtexcoords, texture_bx3xthxtw, hardmask)
 
         # return imrender, improb_bxhxwx1, normal1_bxfx3
         return imrender, improb_bxhxwx1, normal1_bxfx3, hardmask

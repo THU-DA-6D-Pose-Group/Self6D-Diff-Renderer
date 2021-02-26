@@ -28,16 +28,31 @@ import kaolin.cuda.load_textures as load_textures_cuda
 import kaolin as kal
 
 
-class Mesh():
+class Mesh:
     """ Abstract class to represent 3D polygon meshes. """
 
-    def __init__(self, vertices: torch.Tensor, faces: torch.Tensor,
-                 uvs: torch.Tensor, face_textures: torch.Tensor,
-                 textures: torch.Tensor, edges: torch.Tensor, edge2key: dict, vv: torch.Tensor,
-                 vv_count: torch.Tensor, vf: torch.Tensor, vf_count: torch.Tensor,
-                 ve: torch.Tensor, ve_count: torch.Tensor, ff: torch.Tensor,
-                 ff_count: torch.Tensor, ef: torch.Tensor, ef_count: torch.Tensor,
-                 ee: torch.Tensor, ee_count: torch.Tensor):
+    def __init__(
+        self,
+        vertices: torch.Tensor,
+        faces: torch.Tensor,
+        uvs: torch.Tensor,
+        face_textures: torch.Tensor,
+        textures: torch.Tensor,
+        edges: torch.Tensor,
+        edge2key: dict,
+        vv: torch.Tensor,
+        vv_count: torch.Tensor,
+        vf: torch.Tensor,
+        vf_count: torch.Tensor,
+        ve: torch.Tensor,
+        ve_count: torch.Tensor,
+        ff: torch.Tensor,
+        ff_count: torch.Tensor,
+        ef: torch.Tensor,
+        ef_count: torch.Tensor,
+        ee: torch.Tensor,
+        ee_count: torch.Tensor,
+    ):
 
         # Vertices of the mesh
         self.vertices = vertices
@@ -85,10 +100,15 @@ class Mesh():
         self.device = self.vertices.device
 
     @classmethod
-    def from_tensors(cls, vertices: torch.Tensor, faces: torch.Tensor,
-                     uvs: torch.Tensor = None,
-                     face_textures: torch.Tensor = None,
-                     textures: torch.Tensor = None, enable_adjacency=False):
+    def from_tensors(
+        cls,
+        vertices: torch.Tensor,
+        faces: torch.Tensor,
+        uvs: torch.Tensor = None,
+        face_textures: torch.Tensor = None,
+        textures: torch.Tensor = None,
+        enable_adjacency=False,
+    ):
         r"""Returns mesh with supplied tensor information.
 
         Args:
@@ -102,20 +122,68 @@ class Mesh():
         vertices = vertices.clone()
         faces = faces.clone()
         if enable_adjacency:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, \
-                ff_count, ee, ee_count, ef, ef_count = \
-                cls.compute_adjacency_info(vertices, faces)
-            return cls(vertices, faces, uvs, face_textures, textures, edges,
-                       edge2key, vv, vv_count, vf, vf_count, ve, ve_count,
-                       ff, ff_count, ef, ef_count, ee, ee_count)
+            (
+                edge2key,
+                edges,
+                vv,
+                vv_count,
+                ve,
+                ve_count,
+                vf,
+                vf_count,
+                ff,
+                ff_count,
+                ee,
+                ee_count,
+                ef,
+                ef_count,
+            ) = cls.compute_adjacency_info(vertices, faces)
+            return cls(
+                vertices,
+                faces,
+                uvs,
+                face_textures,
+                textures,
+                edges,
+                edge2key,
+                vv,
+                vv_count,
+                vf,
+                vf_count,
+                ve,
+                ve_count,
+                ff,
+                ff_count,
+                ef,
+                ef_count,
+                ee,
+                ee_count,
+            )
         else:
-            return cls(vertices, faces, uvs, face_textures, textures,
-                       None, None, None, None, None, None, None, None,
-                       None, None, None, None, None, None)
+            return cls(
+                vertices,
+                faces,
+                uvs,
+                face_textures,
+                textures,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
 
     @_composedecorator(classmethod, abstractmethod)
-    def from_obj(self, filename: str, with_vt: bool = False,
-                 enable_adjacency: bool = False, texture_res=4):
+    def from_obj(self, filename: str, with_vt: bool = False, enable_adjacency: bool = False, texture_res=4):
         r"""Loads object in .obj wavefront format.
 
         Args:
@@ -141,26 +209,26 @@ class Mesh():
         faces = []
         face_textures = []
         uvs = []
-        with open(filename, 'r') as mesh:
+        with open(filename, "r") as mesh:
             for line in mesh:
                 data = line.split()
 
                 # data = [da for da in data if len(da) > 0]
                 if len(data) == 0:
                     continue
-                if data[0] == 'v':
+                if data[0] == "v":
                     vertices.append([float(d) for d in data[1:]])
 
-                elif data[0] == 'vt':
+                elif data[0] == "vt":
                     uvs.append(data[1:])
 
-                elif data[0] == 'f':
-                    if '//' in data[1]:
-                        data = [da.split('//') for da in data]
+                elif data[0] == "f":
+                    if "//" in data[1]:
+                        data = [da.split("//") for da in data]
                         faces.append([int(d[0]) for d in data[1:]])
                         face_textures.append([int(d[1]) for d in data[1:]])
-                    elif '/' in data[1]:
-                        data = [da.split('/') for da in data]
+                    elif "/" in data[1]:
+                        data = [da.split("/") for da in data]
                         faces.append([int(d[0]) for d in data[1:]])
                         face_textures.append([int(d[1]) for d in data[1:]])
                     else:
@@ -174,14 +242,12 @@ class Mesh():
         # compute texture info
         textures = None
         if with_vt:
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 textures = None
                 for line in f:
-                    if line.startswith('mtllib'):
-                        filename_mtl = os.path.join(
-                            os.path.dirname(filename), line.split()[1])
-                        textures = self.load_textures(
-                            filename, filename_mtl, texture_res)
+                    if line.startswith("mtllib"):
+                        filename_mtl = os.path.join(os.path.dirname(filename), line.split()[1])
+                        textures = self.load_textures(filename, filename_mtl, texture_res)
 
                 f.close()
 
@@ -195,23 +261,65 @@ class Mesh():
             face_textures = None
 
         if enable_adjacency:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, ff_count, \
-                ee, ee_count, ef, ef_count = self.compute_adjacency_info(
-                    vertices, faces)
+            (
+                edge2key,
+                edges,
+                vv,
+                vv_count,
+                ve,
+                ve_count,
+                vf,
+                vf_count,
+                ff,
+                ff_count,
+                ee,
+                ee_count,
+                ef,
+                ef_count,
+            ) = self.compute_adjacency_info(vertices, faces)
         else:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, \
-                ff_count, ee, ee_count, ef, ef_count = None, None, None, \
-                None, None, None, None, None, None, None, None, None, None, \
-                None
+            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, ff_count, ee, ee_count, ef, ef_count = (
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
 
-        output = self(vertices, faces, uvs, face_textures, textures, edges,
-                    edge2key, vv, vv_count, vf, vf_count, ve, ve_count, ff, ff_count,
-                    ef, ef_count, ee, ee_count)
+        output = self(
+            vertices,
+            faces,
+            uvs,
+            face_textures,
+            textures,
+            edges,
+            edge2key,
+            vv,
+            vv_count,
+            vf,
+            vf_count,
+            ve,
+            ve_count,
+            ff,
+            ff_count,
+            ef,
+            ef_count,
+            ee,
+            ee_count,
+        )
         return output
 
     @classmethod
-    def from_off(self, filename: str,
-                 enable_adjacency: Optional[bool] = False):
+    def from_off(self, filename: str, enable_adjacency: Optional[bool] = False):
         r"""Loads a mesh from a .off file.
 
         Args:
@@ -237,12 +345,12 @@ class Mesh():
         # For .off files, metadata is the first valid line of each file
         # (neglecting the "OFF" header).
         metadata_read = False
-        with open(filename, 'r') as infile:
+        with open(filename, "r") as infile:
             for line in infile.readlines():
                 # Ignore comments
-                if line.startswith('#'):
+                if line.startswith("#"):
                     continue
-                if line.startswith('OFF'):
+                if line.startswith("OFF"):
                     continue
                 data = line.strip().split()
                 data = [da for da in data if len(da) > 0]
@@ -262,7 +370,7 @@ class Mesh():
                     continue
                 if read_faces < num_faces:
                     numedges = int(data[0])
-                    faces.append([int(d) for d in data[1:1+numedges]])
+                    faces.append([int(d) for d in data[1 : 1 + numedges]])
                     read_faces += 1
                     continue
                 if read_edges < num_edges:
@@ -273,18 +381,61 @@ class Mesh():
         faces = torch.LongTensor(np.array(faces, dtype=np.int64))
 
         if enable_adjacency:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, ff_count, \
-                ee, ee_count, ef, ef_count = self.compute_adjacency_info(
-                    vertices, faces)
+            (
+                edge2key,
+                edges,
+                vv,
+                vv_count,
+                ve,
+                ve_count,
+                vf,
+                vf_count,
+                ff,
+                ff_count,
+                ee,
+                ee_count,
+                ef,
+                ef_count,
+            ) = self.compute_adjacency_info(vertices, faces)
         else:
-            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, \
-                ff_count, ee, ee_count, ef, ef_count = None, None, None, \
-                None, None, None, None, None, None, None, None, None, None, \
-                None
+            edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, ff_count, ee, ee_count, ef, ef_count = (
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            )
 
-        return self(vertices, faces, None, None, None, edges,
-                    edge2key, vv, vv_count, vf, vf_count, ve, ve_count, ff, ff_count,
-                    ef, ef_count, ee, ee_count)
+        return self(
+            vertices,
+            faces,
+            None,
+            None,
+            None,
+            edges,
+            edge2key,
+            vv,
+            vv_count,
+            vf,
+            vf_count,
+            ve,
+            ve_count,
+            ff,
+            ff_count,
+            ef,
+            ef_count,
+            ee,
+            ee_count,
+        )
 
     @staticmethod
     def _cuda_helper(tensor):
@@ -376,10 +527,9 @@ class Mesh():
 
         self.device = self.vertices.device
 
-
     @staticmethod
     def load_mtl(filename_mtl: str):
-        r""" Returns all colours and texture files found in an mtl files.
+        r"""Returns all colours and texture files found in an mtl files.
 
         Args:
                 filename_mtl (str) : mtl file name
@@ -387,23 +537,21 @@ class Mesh():
         """
         texture_filenames = {}
         colors = {}
-        material_name = ''
+        material_name = ""
         with open(filename_mtl) as f:
             for line in f.readlines():
                 if len(line.split()) != 0:
-                    if line.split()[0] == 'newmtl':
+                    if line.split()[0] == "newmtl":
                         material_name = line.split()[1]
-                    if line.split()[0] == 'map_Kd':
+                    if line.split()[0] == "map_Kd":
                         texture_filenames[material_name] = line.split()[1]
-                    if line.split()[0] == 'Kd':
-                        colors[material_name] = np.array(
-                            list(map(float, line.split()[1:4])))
+                    if line.split()[0] == "Kd":
+                        colors[material_name] = np.array(list(map(float, line.split()[1:4])))
         return colors, texture_filenames
 
     @classmethod
-    def load_textures(self, filename_obj: str, filename_mtl: str,
-                      texture_res: int):
-        r""" Returns texture for a given obj file, where texture is
+    def load_textures(self, filename_obj: str, filename_mtl: str, texture_res: int):
+        r"""Returns texture for a given obj file, where texture is
         defined using vertex texture uvs.
 
         Args:
@@ -423,36 +571,36 @@ class Mesh():
         for line in lines:
             if len(line.split()) == 0:
                 continue
-            if line.split()[0] == 'vt':
+            if line.split()[0] == "vt":
                 vertices.append([float(v) for v in line.split()[1:3]])
         vertices = np.vstack(vertices).astype(np.float32)
 
         # load faces for textures
         faces = []
         material_names = []
-        material_name = ''
+        material_name = ""
         for line in lines:
             if len(line.split()) == 0:
                 continue
-            if line.split()[0] == 'f':
+            if line.split()[0] == "f":
                 vs = line.split()[1:]
                 nv = len(vs)
-                if '/' in vs[0] and '//' not in vs[0]:
-                    v0 = int(vs[0].split('/')[1])
+                if "/" in vs[0] and "//" not in vs[0]:
+                    v0 = int(vs[0].split("/")[1])
                 else:
                     v0 = 0
                 for i in range(nv - 2):
-                    if '/' in vs[i + 1] and '//' not in vs[i + 1]:
-                        v1 = int(vs[i + 1].split('/')[1])
+                    if "/" in vs[i + 1] and "//" not in vs[i + 1]:
+                        v1 = int(vs[i + 1].split("/")[1])
                     else:
                         v1 = 0
-                    if '/' in vs[i + 2] and '//' not in vs[i + 2]:
-                        v2 = int(vs[i + 2].split('/')[1])
+                    if "/" in vs[i + 2] and "//" not in vs[i + 2]:
+                        v2 = int(vs[i + 2].split("/")[1])
                     else:
                         v2 = 0
                     faces.append((v0, v1, v2))
                     material_names.append(material_name)
-            if line.split()[0] == 'usemtl':
+            if line.split()[0] == "usemtl":
                 material_name = line.split()[1]
         faces = np.vstack(faces).astype(np.int32) - 1
         faces = vertices[faces]
@@ -460,8 +608,7 @@ class Mesh():
         faces[1 < faces] = faces[1 < faces] % 1
 
         colors, texture_filenames = self.load_mtl(filename_mtl)
-        textures = torch.ones(
-            faces.shape[0], texture_res**2, 3, dtype=torch.float32)
+        textures = torch.ones(faces.shape[0], texture_res ** 2, 3, dtype=torch.float32)
         textures = textures.cuda()
 
         for material_name, color in list(colors.items()):
@@ -471,10 +618,8 @@ class Mesh():
                     textures[i, :, :] = color[None, :]
 
         for material_name, filename_texture in list(texture_filenames.items()):
-            filename_texture = os.path.join(
-                os.path.dirname(filename_obj), filename_texture)
-            image = np.array(Image.open(filename_texture)
-                             ).astype(np.float32) / 255.
+            filename_texture = os.path.join(os.path.dirname(filename_obj), filename_texture)
+            image = np.array(Image.open(filename_texture)).astype(np.float32) / 255.0
 
             # texture image may have one channel (grey color)
             if len(image.shape) == 2:
@@ -486,11 +631,9 @@ class Mesh():
             # pytorch does not support negative slicing for the moment
             image = image[::-1, :, :]
             image = torch.from_numpy(image.copy()).cuda()
-            is_update = (np.array(material_names)
-                         == material_name).astype(np.int32)
+            is_update = (np.array(material_names) == material_name).astype(np.int32)
             is_update = torch.from_numpy(is_update).cuda()
-            textures = load_textures_cuda.load_textures(
-                image, faces, textures, is_update)
+            textures = load_textures_cuda.load_textures(image, faces, textures, is_update)
         return textures
 
     @staticmethod
@@ -517,7 +660,7 @@ class Mesh():
 
     @staticmethod
     def get_edge_order(a: int, b: int):
-        """ Returns (a, b) or (b, a), depending on which is smaller.
+        """Returns (a, b) or (b, a), depending on which is smaller.
         (Smaller element first, for unique keys)
 
         Args:
@@ -570,8 +713,7 @@ class Mesh():
         return None, None, None
 
     @staticmethod
-    def list_of_lists_to_matrix(
-            list_of_lists: list, sublist_lengths: torch.Tensor, matrix: torch.Tensor):
+    def list_of_lists_to_matrix(list_of_lists: list, sublist_lengths: torch.Tensor, matrix: torch.Tensor):
         r"""Takes a list of lists (each sub-list of variable size), and maps it
         to a matrix. Decorated by numba, for efficiency sake.
 
@@ -608,8 +750,7 @@ class Mesh():
         facesize = faces.shape[1]
         nb_vertices = vertices.shape[0]
         nb_faces = faces.shape[0]
-        edges = torch.cat([faces[:,i:i+2] for i in range(facesize - 1)] +
-                          [faces[:,[-1,0]]], dim=0)
+        edges = torch.cat([faces[:, i : i + 2] for i in range(facesize - 1)] + [faces[:, [-1, 0]]], dim=0)
         # Sort the vertex of edges in increasing order
         edges = torch.sort(edges, dim=1)[0]
         # id of corresponding face in edges
@@ -625,97 +766,107 @@ class Mesh():
         sorted_faces_ids = face_ids[order_edges_ids]
         # indices of first occurences of each key
         idx_first = torch.where(
-            torch.nn.functional.pad(sorted_edges_ids[1:] != sorted_edges_ids[:-1],
-                                    (1,0), value=1))[0]
+            torch.nn.functional.pad(sorted_edges_ids[1:] != sorted_edges_ids[:-1], (1, 0), value=1)
+        )[0]
         nb_faces_per_edge = idx_first[1:] - idx_first[:-1]
         # compute sub_idx (2nd axis indices to store the faces)
         offsets = torch.zeros(sorted_edges_ids.shape[0], device=device, dtype=torch.long)
         offsets[idx_first[1:]] = nb_faces_per_edge
-        sub_idx = (torch.arange(sorted_edges_ids.shape[0], device=device, dtype=torch.long) -
-                   torch.cumsum(offsets, dim=0))
+        sub_idx = torch.arange(sorted_edges_ids.shape[0], device=device, dtype=torch.long) - torch.cumsum(
+            offsets, dim=0
+        )
         # TODO(cfujitsang): potential way to compute sub_idx differently
         #                   to test with bigger model
-        #sub_idx = torch.ones(sorted_edges_ids.shape[0], device=device, dtype=torch.long)
-        #sub_idx[0] = 0
-        #sub_idx[idx_first[1:]] = 1 - nb_faces_per_edge
-        #sub_idx = torch.cumsum(sub_idx, dim=0)
-        nb_faces_per_edge = torch.cat([nb_faces_per_edge,
-                                       sorted_edges_ids.shape[0] - idx_first[-1:]],
-                                      dim=0)
+        # sub_idx = torch.ones(sorted_edges_ids.shape[0], device=device, dtype=torch.long)
+        # sub_idx[0] = 0
+        # sub_idx[idx_first[1:]] = 1 - nb_faces_per_edge
+        # sub_idx = torch.cumsum(sub_idx, dim=0)
+        nb_faces_per_edge = torch.cat([nb_faces_per_edge, sorted_edges_ids.shape[0] - idx_first[-1:]], dim=0)
         max_sub_idx = torch.max(nb_faces_per_edge)
         ef = torch.zeros((nb_edges, max_sub_idx), device=device, dtype=torch.long) - 1
         ef[sorted_edges_ids, sub_idx] = sorted_faces_ids
         # FACE2FACES
-        nb_faces_per_face = torch.stack([nb_faces_per_edge[edges_ids[i*nb_faces:(i+1)*nb_faces]]
-                                         for i in range(facesize)], dim=1).sum(dim=1) - facesize
-        ff = torch.cat([ef[edges_ids[i*nb_faces:(i+1)*nb_faces]] for i in range(facesize)], dim=1)
+        nb_faces_per_face = (
+            torch.stack(
+                [nb_faces_per_edge[edges_ids[i * nb_faces : (i + 1) * nb_faces]] for i in range(facesize)], dim=1
+            ).sum(dim=1)
+            - facesize
+        )
+        ff = torch.cat([ef[edges_ids[i * nb_faces : (i + 1) * nb_faces]] for i in range(facesize)], dim=1)
         # remove self occurences
-        ff[ff == torch.arange(nb_faces, device=device, dtype=torch.long).view(-1,1)] = -1
+        ff[ff == torch.arange(nb_faces, device=device, dtype=torch.long).view(-1, 1)] = -1
         ff = torch.sort(ff, dim=-1, descending=True)[0]
-        to_del = (ff[:,1:] == ff[:,:-1]) & (ff[:,1:] != -1)
-        ff[:,1:][to_del] = -1
+        to_del = (ff[:, 1:] == ff[:, :-1]) & (ff[:, 1:] != -1)
+        ff[:, 1:][to_del] = -1
         nb_faces_per_face = nb_faces_per_face - torch.sum(to_del, dim=1)
         max_sub_idx = torch.max(nb_faces_per_face)
-        ff = torch.sort(ff, dim=-1, descending=True)[0][:,:max_sub_idx]
+        ff = torch.sort(ff, dim=-1, descending=True)[0][:, :max_sub_idx]
 
         # VERTEX2VERTICES and VERTEX2EDGES
         npy_edges = edges.cpu().numpy()
         edge2key = {tuple(npy_edges[i]): i for i in range(nb_edges)}
-        #_edges and double_edges 2nd axis correspond to the triplet:
+        # _edges and double_edges 2nd axis correspond to the triplet:
         # [left vertex, right vertex, edge key]
-        _edges = torch.cat([edges, torch.arange(nb_edges, device=device).view(-1, 1)],
-                           dim=1)
-        double_edges = torch.cat([_edges, _edges[:,[1,0,2]]], dim=0)
+        _edges = torch.cat([edges, torch.arange(nb_edges, device=device).view(-1, 1)], dim=1)
+        double_edges = torch.cat([_edges, _edges[:, [1, 0, 2]]], dim=0)
         double_edges = torch.unique(double_edges, sorted=True, dim=0)
         # TODO(cfujitsang): potential improvment, to test with bigger model:
-        #double_edges0, order_double_edges = torch.sort(double_edges[0])
+        # double_edges0, order_double_edges = torch.sort(double_edges[0])
         nb_double_edges = double_edges.shape[0]
         # indices of first occurences of each key
-        idx_first = torch.where(
-            torch.nn.functional.pad(double_edges[1:,0] != double_edges[:-1,0],
-                                    (1,0), value=1))[0]
+        idx_first = torch.where(torch.nn.functional.pad(double_edges[1:, 0] != double_edges[:-1, 0], (1, 0), value=1))[
+            0
+        ]
         nb_edges_per_vertex = idx_first[1:] - idx_first[:-1]
         # compute sub_idx (2nd axis indices to store the edges)
         offsets = torch.zeros(nb_double_edges, device=device, dtype=torch.long)
         offsets[idx_first[1:]] = nb_edges_per_vertex
-        sub_idx = (torch.arange(nb_double_edges, device=device, dtype=torch.long) -
-                   torch.cumsum(offsets, dim=0))
-        nb_edges_per_vertex = torch.cat([nb_edges_per_vertex,
-                                         nb_double_edges - idx_first[-1:]], dim=0)
+        sub_idx = torch.arange(nb_double_edges, device=device, dtype=torch.long) - torch.cumsum(offsets, dim=0)
+        nb_edges_per_vertex = torch.cat([nb_edges_per_vertex, nb_double_edges - idx_first[-1:]], dim=0)
         max_sub_idx = torch.max(nb_edges_per_vertex)
         vv = torch.zeros((nb_vertices, max_sub_idx), device=device, dtype=torch.long) - 1
-        vv[double_edges[:,0], sub_idx] = double_edges[:,1]
+        vv[double_edges[:, 0], sub_idx] = double_edges[:, 1]
         ve = torch.zeros((nb_vertices, max_sub_idx), device=device, dtype=torch.long) - 1
-        ve[double_edges[:,0], sub_idx] = double_edges[:,2]
+        ve[double_edges[:, 0], sub_idx] = double_edges[:, 2]
         # EDGE2EDGES
-        ee = torch.cat([ve[edges[:,0],:], ve[edges[:,1],:]], dim=1)
-        nb_edges_per_edge = nb_edges_per_vertex[edges[:,0]] + nb_edges_per_vertex[edges[:,1]] - 2
+        ee = torch.cat([ve[edges[:, 0], :], ve[edges[:, 1], :]], dim=1)
+        nb_edges_per_edge = nb_edges_per_vertex[edges[:, 0]] + nb_edges_per_vertex[edges[:, 1]] - 2
         max_sub_idx = torch.max(nb_edges_per_edge)
         # remove self occurences
-        ee[ee == torch.arange(nb_edges, device=device, dtype=torch.long).view(-1,1)] = -1
-        ee = torch.sort(ee, dim=-1, descending=True)[0][:,:max_sub_idx]
+        ee[ee == torch.arange(nb_edges, device=device, dtype=torch.long).view(-1, 1)] = -1
+        ee = torch.sort(ee, dim=-1, descending=True)[0][:, :max_sub_idx]
         # VERTEX2FACES
         vertex_ordered, order_vertex = torch.sort(faces.view(-1))
         face_ids_in_vertex_order = order_vertex / facesize
         # indices of first occurences of each id
-        idx_first = torch.where(
-            torch.nn.functional.pad(vertex_ordered[1:] != vertex_ordered[:-1], (1,0), value=1))[0]
+        idx_first = torch.where(torch.nn.functional.pad(vertex_ordered[1:] != vertex_ordered[:-1], (1, 0), value=1))[0]
         nb_faces_per_vertex = idx_first[1:] - idx_first[:-1]
         # compute sub_idx (2nd axis indices to store the faces)
         offsets = torch.zeros(vertex_ordered.shape[0], device=device, dtype=torch.long)
         offsets[idx_first[1:]] = nb_faces_per_vertex
-        sub_idx = (torch.arange(vertex_ordered.shape[0], device=device, dtype=torch.long) -
-                   torch.cumsum(offsets, dim=0))
+        sub_idx = torch.arange(vertex_ordered.shape[0], device=device, dtype=torch.long) - torch.cumsum(offsets, dim=0)
         # TODO(cfujitsang): it seems that nb_faces_per_vertex == nb_edges_per_vertex ?
-        nb_faces_per_vertex = torch.cat([nb_faces_per_vertex,
-                                         vertex_ordered.shape[0] - idx_first[-1:]], dim=0)
+        nb_faces_per_vertex = torch.cat([nb_faces_per_vertex, vertex_ordered.shape[0] - idx_first[-1:]], dim=0)
         max_sub_idx = torch.max(nb_faces_per_vertex)
         vf = torch.zeros((nb_vertices, max_sub_idx), device=device, dtype=torch.long) - 1
         vf[vertex_ordered, sub_idx] = face_ids_in_vertex_order
 
-        return edge2key, edges, vv, nb_edges_per_vertex, ve, nb_edges_per_vertex, vf, \
-            nb_faces_per_vertex, ff, nb_faces_per_face, ee, nb_edges_per_edge, ef, nb_faces_per_edge
-
+        return (
+            edge2key,
+            edges,
+            vv,
+            nb_edges_per_vertex,
+            ve,
+            nb_edges_per_vertex,
+            vf,
+            nb_faces_per_vertex,
+            ff,
+            nb_faces_per_face,
+            ee,
+            nb_edges_per_edge,
+            ef,
+            nb_faces_per_edge,
+        )
 
     @staticmethod
     def old_compute_adjacency_info(vertices: torch.Tensor, faces: torch.Tensor):
@@ -769,8 +920,7 @@ class Mesh():
                 k = edge2key[edge]
                 for j in range(1, facesize):
                     q = edge2key[face_edges[(idx + j) % facesize]]
-                    common_vtx, first_nbr, second_nbr = Mesh.get_common_vertex(
-                        edges[k], edges[q])
+                    common_vtx, first_nbr, second_nbr = Mesh.get_common_vertex(edges[k], edges[q])
                     if common_vtx:
                         edge_edge_nbd[k].append(q)
                         vertex_vertex_nbd[common_vtx].add(first_nbr)
@@ -810,18 +960,12 @@ class Mesh():
 
         # Convert sets to lists in vertex_edge_nbd, vertex_face_nbd, and
         # face_face_nbd
-        vertex_vertex_nbd = [torch.Tensor(list(l)).long().to(device)
-                             for l in vertex_vertex_nbd]
-        vertex_edge_nbd = [torch.Tensor(list(l)).long().to(device)
-                           for l in vertex_edge_nbd]
-        vertex_face_nbd = [torch.Tensor(list(l)).long().to(device)
-                           for l in vertex_face_nbd]
-        face_face_nbd = [torch.Tensor(list(l)).long().to(device)
-                         for l in face_face_nbd]
-        edge_edge_nbd = [torch.Tensor(l).long().to(device)
-                         for l in edge_edge_nbd]
-        edge_face_nbd = [torch.Tensor(l).long().to(device)
-                         for l in edge_face_nbd]
+        vertex_vertex_nbd = [torch.Tensor(list(l)).long().to(device) for l in vertex_vertex_nbd]
+        vertex_edge_nbd = [torch.Tensor(list(l)).long().to(device) for l in vertex_edge_nbd]
+        vertex_face_nbd = [torch.Tensor(list(l)).long().to(device) for l in vertex_face_nbd]
+        face_face_nbd = [torch.Tensor(list(l)).long().to(device) for l in face_face_nbd]
+        edge_edge_nbd = [torch.Tensor(l).long().to(device) for l in edge_edge_nbd]
+        edge_face_nbd = [torch.Tensor(l).long().to(device) for l in edge_face_nbd]
 
         # Map vertex_vertex_nbd to a matrix
         vv_count = torch.Tensor([len(l) for l in vertex_vertex_nbd]).long()
@@ -862,28 +1006,26 @@ class Mesh():
         # Convert to numpy arrays
         edges = torch.Tensor(edges).long().to(device)
 
-        return edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, \
-            ff, ff_count, ee, ee_count, ef, ef_count
+        return edge2key, edges, vv, vv_count, ve, ve_count, vf, vf_count, ff, ff_count, ee, ee_count, ef, ef_count
 
     def laplacian_smoothing(self, iterations: int = 1):
-        r""" Applies laplacian smoothing to the mesh.
+        r"""Applies laplacian smoothing to the mesh.
 
-            Args:
-                iterations (int) : number of iterations to run the algorithm for.
+        Args:
+            iterations (int) : number of iterations to run the algorithm for.
 
-            Example:
-                >>> mesh = Mesh.from_obj('model.obj')
-                >>> mesh.compute_laplacian().abs().mean()
-                tensor(0.0010)
-                >>> mesh.laplacian_smoothing(iterations=3)
-                >>> mesh.compute_laplacian().abs().mean()
-                tensor(9.9956e-05)
-    """
+        Example:
+            >>> mesh = Mesh.from_obj('model.obj')
+            >>> mesh.compute_laplacian().abs().mean()
+            tensor(0.0010)
+            >>> mesh.laplacian_smoothing(iterations=3)
+            >>> mesh.compute_laplacian().abs().mean()
+            tensor(9.9956e-05)
+        """
 
         adj_sparse = self.compute_adjacency_matrix_sparse()
 
-        neighbor_num = torch.sparse.sum(
-            adj_sparse, dim=1).to_dense().view(-1, 1)
+        neighbor_num = torch.sparse.sum(adj_sparse, dim=1).to_dense().view(-1, 1)
 
         for _ in range(iterations):
             neighbor_sum = torch.sparse.mm(adj_sparse, self.vertices)
@@ -891,36 +1033,34 @@ class Mesh():
 
     def compute_laplacian(self):
         r"""Calcualtes the laplcaian of the graph, meaning the average
-                difference between a vertex and its neighbors.
+            difference between a vertex and its neighbors.
 
-            Returns:
-                (FloatTensor) : laplacian of the mesh.
+        Returns:
+            (FloatTensor) : laplacian of the mesh.
 
-            Example:
-                >>> mesh = Mesh.from_obj('model.obj')
-                >>> lap = mesh.compute_laplacian()
+        Example:
+            >>> mesh = Mesh.from_obj('model.obj')
+            >>> lap = mesh.compute_laplacian()
 
         """
 
         adj_sparse = self.compute_adjacency_matrix_sparse()
 
-        neighbor_sum = torch.sparse.mm(
-            adj_sparse, self.vertices) - self.vertices
-        neighbor_num = torch.sparse.sum(
-            adj_sparse, dim=1).to_dense().view(-1, 1) - 1
+        neighbor_sum = torch.sparse.mm(adj_sparse, self.vertices) - self.vertices
+        neighbor_num = torch.sparse.sum(adj_sparse, dim=1).to_dense().view(-1, 1) - 1
         neighbor_num[neighbor_num == 0] = 1
-        neighbor_num = (1. / neighbor_num).view(-1, 1)
+        neighbor_num = (1.0 / neighbor_num).view(-1, 1)
 
         neighbor_sum = neighbor_sum * neighbor_num
         lap = self.vertices - neighbor_sum
         return lap
 
     def show(self):
-        r""" Visuailizes the mesh.
+        r"""Visuailizes the mesh.
 
-            Example:
-                >>> mesh = Mesh.from_obj('model.obj')
-                >>> mesh.show()
+        Example:
+            >>> mesh = Mesh.from_obj('model.obj')
+            >>> mesh.show()
 
         """
 
@@ -937,8 +1077,7 @@ class Mesh():
             >>> mesh.save_tensors()
 
         """
-        np.savez(filename, vertices=self.vertices.data.cpu().numpy(),
-                 faces=self.faces.data.cpu().numpy())
+        np.savez(filename, vertices=self.vertices.data.cpu().numpy(), faces=self.faces.data.cpu().numpy())
 
     @staticmethod
     def normalize_zerosafe(matrix: torch.Tensor):
@@ -950,11 +1089,10 @@ class Mesh():
 
         """
 
-        assert matrix.dim() == 2, 'Need matrix to contain exactly 2 dimensions'
+        assert matrix.dim() == 2, "Need matrix to contain exactly 2 dimensions"
         magnitude = torch.sqrt(torch.sum(torch.pow(matrix, 2), dim=1))
         valid_inds = magnitude > 0
-        matrix[valid_inds] = torch.div(matrix[valid_inds], magnitude[
-                                       valid_inds].unsqueeze(1))
+        matrix[valid_inds] = torch.div(matrix[valid_inds], magnitude[valid_inds].unsqueeze(1))
         return matrix
 
     def sample(self, num_points):

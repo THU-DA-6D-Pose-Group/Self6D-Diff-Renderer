@@ -59,17 +59,13 @@ def get_spherical_coords_x(X):
 
 
 # symmetric spherical projection
-def get_symmetric_spherical_tex_coords(vertex_pos,
-                                       symmetry_axis=1,
-                                       up_axis=2,
-                                       front_axis=0):
+def get_symmetric_spherical_tex_coords(vertex_pos, symmetry_axis=1, up_axis=2, front_axis=0):
     # vertex_pos is N x 3
     length = np.linalg.norm(vertex_pos, axis=1)
     # Inclination
     theta = np.arccos(vertex_pos[:, front_axis] / length)
     # Azimuth
-    phi = np.abs(np.arctan2(vertex_pos[:, symmetry_axis],
-                            vertex_pos[:, up_axis]))
+    phi = np.abs(np.arctan2(vertex_pos[:, symmetry_axis], vertex_pos[:, up_axis]))
 
     # Normalize both to be between [-1, 1]
     uu = (theta / np.pi) * 2 - 1
@@ -80,18 +76,18 @@ def get_symmetric_spherical_tex_coords(vertex_pos,
 
 
 #########################################################################
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     from utils.utils_mesh import loadobj, savemeshtes
     import cv2
 
-    p, f = loadobj('2.obj')
+    p, f = loadobj("2.obj")
     uv = get_spherical_coords_x(p)
     uv[:, 0] = -uv[:, 0]
 
     uv[:, 1] = -uv[:, 1]
     uv = (uv + 1) / 2
-    savemeshtes(p, uv, f, './2_x.obj')
+    savemeshtes(p, uv, f, "./2_x.obj")
 
     tex = np.zeros(shape=(256, 512, 3), dtype=np.uint8)
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -100,12 +96,7 @@ if __name__ == '__main__':
     fontColor = (0, 255, 255)
     lineType = 2
 
-    cv2.putText(tex, 'Hello World!',
-                bottomLeftCornerOfText,
-                font,
-                fontScale,
-                fontColor,
-                lineType)
-    cv2.imshow('', tex)
+    cv2.putText(tex, "Hello World!", bottomLeftCornerOfText, font, fontScale, fontColor, lineType)
+    cv2.imshow("", tex)
     cv2.waitKey()
-    cv2.imwrite('2_x.png', np.transpose(tex, [1, 0, 2]))
+    cv2.imwrite("2_x.png", np.transpose(tex, [1, 0, 2]))

@@ -81,10 +81,12 @@ def perspectiveprojectionnp(fovy, ratio=1.0, near=0.01, far=10.0):
     #          0, near / top, 0, 0, \
     #          0, 0, -(far+near)/(far-near), -2*far*near/(far-near), \
     #          0, 0, -1, 0]
-    mtx = [[1.0 / (ratio * tanfov), 0, 0, 0],
-           [0, 1.0 / tanfov, 0, 0],
-           [0, 0, -(far + near) / (far - near), -2 * far * near / (far - near)],
-           [0, 0, -1.0, 0]]
+    mtx = [
+        [1.0 / (ratio * tanfov), 0, 0, 0],
+        [0, 1.0 / tanfov, 0, 0],
+        [0, 0, -(far + near) / (far - near), -2 * far * near / (far - near)],
+        [0, 0, -1.0, 0],
+    ]
     # return np.array(mtx, dtype=np.float32)
     # 2*fy/h/ratio=2*fy/w, 2*fy/h
     return np.array([[1.0 / (ratio * tanfov)], [1.0 / tanfov], [-1]], dtype=np.float32)

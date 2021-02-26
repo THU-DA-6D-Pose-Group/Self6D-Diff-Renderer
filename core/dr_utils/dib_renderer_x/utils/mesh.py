@@ -26,10 +26,10 @@ import numpy as np
 ##################################################################
 # faces begin from 0!!!
 def face2edge(facenp_fx3):
-    '''
+    """
     facenp_fx3, int32
     return edgenp_ex2, int32
-    '''
+    """
     f1 = facenp_fx3[:, 0:1]
     f2 = facenp_fx3[:, 1:2]
     f3 = facenp_fx3[:, 2:3]
@@ -43,12 +43,12 @@ def face2edge(facenp_fx3):
 
 
 def face2edge2(facenp_fx3, edgenp_ex2):
-    '''
+    """
     facenp_fx3, int32
     edgenp_ex2, int32
     return face_fx3, int32
     this face is indexed by edge
-    '''
+    """
     fnum = facenp_fx3.shape[0]
     enum = edgenp_ex2.shape[0]
 
@@ -66,12 +66,12 @@ def face2edge2(facenp_fx3, edgenp_ex2):
 
 
 def edge2face(facenp_fx3, edgenp_ex2):
-    '''
+    """
     facenp_fx3, int32
     edgenp_ex2, int32
     return edgenp_ex2, int32
     this edge is indexed by face
-    '''
+    """
     fnum = facenp_fx3.shape[0]
     enum = edgenp_ex2.shape[0]
 
@@ -94,13 +94,13 @@ def edge2face(facenp_fx3, edgenp_ex2):
 
 
 def face2pneimtx(facenp_fx3):
-    '''
+    """
     facenp_fx3, int32
     return pointneighbourmtx, pxp, float32
     will normalize!
     assume it is a good mesh
     every point has more than one neighbour
-    '''
+    """
     pnum = np.max(facenp_fx3) + 1
     pointneighbourmtx = np.zeros(shape=(pnum, pnum), dtype=np.float32)
     for i in range(3):
@@ -117,10 +117,10 @@ def face2pneimtx(facenp_fx3):
 
 
 def face2pfmtx(facenp_fx3):
-    '''
+    """
     facenp_fx3, int32
     reutrn pfmtx, pxf, float32
-    '''
+    """
     pnum = np.max(facenp_fx3) + 1
     fnum = facenp_fx3.shape[0]
     pfmtx = np.zeros(shape=(pnum, fnum), dtype=np.float32)
@@ -172,16 +172,16 @@ def loadobj(meshfile):
 
     v = []
     f = []
-    meshfp = open(meshfile, 'r')
+    meshfp = open(meshfile, "r")
     for line in meshfp.readlines():
-        data = line.strip().split(' ')
+        data = line.strip().split(" ")
         data = [da for da in data if len(da) > 0]
         if len(data) != 4:
             continue
-        if data[0] == 'v':
+        if data[0] == "v":
             v.append([float(d) for d in data[1:]])
-        if data[0] == 'f':
-            data = [da.split('/')[0] for da in data]
+        if data[0] == "f":
+            data = [da.split("/")[0] for da in data]
             f.append([int(d) for d in data[1:]])
     meshfp.close()
 
@@ -196,16 +196,16 @@ def loadobjcolor(meshfile):
     v = []
     vc = []
     f = []
-    meshfp = open(meshfile, 'r')
+    meshfp = open(meshfile, "r")
     for line in meshfp.readlines():
-        data = line.strip().split(' ')
+        data = line.strip().split(" ")
         data = [da for da in data if len(da) > 0]
-        if data[0] == 'v':
+        if data[0] == "v":
             v.append([float(d) for d in data[1:4]])
             if len(data) == 7:
                 vc.append([float(d) for d in data[4:7]])
-        if data[0] == 'f':
-            data = [da.split('/')[0] for da in data]
+        if data[0] == "f":
+            data = [da.split("/")[0] for da in data]
             f.append([int(d) for d in data[1:4]])
     meshfp.close()
 
@@ -225,20 +225,20 @@ def loadobjtex(meshfile):
     vt = []
     f = []
     ft = []
-    meshfp = open(meshfile, 'r')
+    meshfp = open(meshfile, "r")
     for line in meshfp.readlines():
-        data = line.strip().split(' ')
+        data = line.strip().split(" ")
         data = [da for da in data if len(da) > 0]
         if not ((len(data) == 3) or (len(data) == 4) or (len(data) == 5)):
             continue
-        if data[0] == 'v':
+        if data[0] == "v":
             if len(data) == 4:
                 v.append([float(d) for d in data[1:]])
-        if data[0] == 'vt':
+        if data[0] == "vt":
             if len(data) == 3 or len(data) == 4:
                 vt.append([float(d) for d in data[1:3]])
-        if data[0] == 'f':
-            data = [da.split('/') for da in data]
+        if data[0] == "f":
+            data = [da.split("/") for da in data]
             if len(data) == 4:
                 f.append([int(d[0]) for d in data[1:]])
                 # print(data[1:])
@@ -265,16 +265,16 @@ def loadobjtex(meshfile):
 def savemesh(pointnp_px3, facenp_fx3, fname, partinfo=None):
 
     if partinfo is None:
-        fid = open(fname, 'w')
+        fid = open(fname, "w")
         for pidx, p in enumerate(pointnp_px3):
             pp = p
-            fid.write('v %f %f %f\n' % (pp[0], pp[1], pp[2]))
+            fid.write("v %f %f %f\n" % (pp[0], pp[1], pp[2]))
         for f in facenp_fx3:
             f1 = f + 1
-            fid.write('f %d %d %d\n' % (f1[0], f1[1], f1[2]))
+            fid.write("f %d %d %d\n" % (f1[0], f1[1], f1[2]))
         fid.close()
     else:
-        fid = open(fname, 'w')
+        fid = open(fname, "w")
         for pidx, p in enumerate(pointnp_px3):
             if partinfo[pidx, -1] == 0:
                 pp = p
@@ -282,10 +282,10 @@ def savemesh(pointnp_px3, facenp_fx3, fname, partinfo=None):
             else:
                 pp = p
                 color = [0, 0, 1]
-            fid.write('v %f %f %f %f %f %f\n' % (pp[0], pp[1], pp[2], color[0], color[1], color[2]))
+            fid.write("v %f %f %f %f %f %f\n" % (pp[0], pp[1], pp[2], color[0], color[1], color[2]))
         for f in facenp_fx3:
             f1 = f + 1
-            fid.write('f %d %d %d\n' % (f1[0], f1[1], f1[2]))
+            fid.write("f %d %d %d\n" % (f1[0], f1[1], f1[2]))
         fid.close()
     return
 
@@ -293,23 +293,23 @@ def savemesh(pointnp_px3, facenp_fx3, fname, partinfo=None):
 def savemeshcolor(pointnp_px3, facenp_fx3, fname, color_px3=None):
 
     if color_px3 is None:
-        fid = open(fname, 'w')
+        fid = open(fname, "w")
         for pidx, p in enumerate(pointnp_px3):
             pp = p
-            fid.write('v %f %f %f\n' % (pp[0], pp[1], pp[2]))
+            fid.write("v %f %f %f\n" % (pp[0], pp[1], pp[2]))
         for f in facenp_fx3:
             f1 = f + 1
-            fid.write('f %d %d %d\n' % (f1[0], f1[1], f1[2]))
+            fid.write("f %d %d %d\n" % (f1[0], f1[1], f1[2]))
         fid.close()
     else:
-        fid = open(fname, 'w')
+        fid = open(fname, "w")
         for pidx, p in enumerate(pointnp_px3):
             pp = p
             color = color_px3[pidx]
-            fid.write('v %f %f %f %f %f %f\n' % (pp[0], pp[1], pp[2], color[0], color[1], color[2]))
+            fid.write("v %f %f %f %f %f %f\n" % (pp[0], pp[1], pp[2], color[0], color[1], color[2]))
         for f in facenp_fx3:
             f1 = f + 1
-            fid.write('f %d %d %d\n' % (f1[0], f1[1], f1[2]))
+            fid.write("f %d %d %d\n" % (f1[0], f1[1], f1[2]))
         fid.close()
     return
 
@@ -317,48 +317,51 @@ def savemeshcolor(pointnp_px3, facenp_fx3, fname, color_px3=None):
 def savemeshtes(pointnp_px3, tcoords_px2, facenp_fx3, fname):
 
     import os
+
     fol, na = os.path.split(fname)
     na, _ = os.path.splitext(na)
 
-    matname = '%s/%s.mtl' % (fol, na)
-    fid = open(matname, 'w')
-    fid.write('newmtl material_0\n')
-    fid.write('Kd 1 1 1\n')
-    fid.write('Ka 0 0 0\n')
-    fid.write('Ks 0.4 0.4 0.4\n')
-    fid.write('Ns 10\n')
-    fid.write('illum 2\n')
-    fid.write('map_Kd %s.png\n' % na)
+    matname = "%s/%s.mtl" % (fol, na)
+    fid = open(matname, "w")
+    fid.write("newmtl material_0\n")
+    fid.write("Kd 1 1 1\n")
+    fid.write("Ka 0 0 0\n")
+    fid.write("Ks 0.4 0.4 0.4\n")
+    fid.write("Ns 10\n")
+    fid.write("illum 2\n")
+    fid.write("map_Kd %s.png\n" % na)
     fid.close()
 
-    fid = open(fname, 'w')
-    fid.write('mtllib %s.mtl\n' % na)
+    fid = open(fname, "w")
+    fid.write("mtllib %s.mtl\n" % na)
 
     for pidx, p in enumerate(pointnp_px3):
         pp = p
-        fid.write('v %f %f %f\n' % (pp[0], pp[1], pp[2]))
+        fid.write("v %f %f %f\n" % (pp[0], pp[1], pp[2]))
 
     for pidx, p in enumerate(tcoords_px2):
         pp = p
-        fid.write('vt %f %f\n' % (pp[0], pp[1]))
+        fid.write("vt %f %f\n" % (pp[0], pp[1]))
 
-    fid.write('usemtl material_0\n')
+    fid.write("usemtl material_0\n")
     for f in facenp_fx3:
         f1 = f + 1
-        fid.write('f %d/%d %d/%d %d/%d\n' % (f1[0], f1[0], f1[1], f1[1], f1[2], f1[2]))
+        fid.write("f %d/%d %d/%d %d/%d\n" % (f1[0], f1[0], f1[1], f1[1], f1[2], f1[2]))
     fid.close()
 
     return
 
 
-def save_textured_mesh(directory,
-                       file_name,
-                       vertex_pos_px3,
-                       face_fx3,
-                       tex_coord_px2,
-                       normalize_tex_coord=False,
-                       flip_vertical=False,
-                       texture_bias=0.01):
+def save_textured_mesh(
+    directory,
+    file_name,
+    vertex_pos_px3,
+    face_fx3,
+    tex_coord_px2,
+    normalize_tex_coord=False,
+    flip_vertical=False,
+    texture_bias=0.01,
+):
     """
     Save a textured mesh.
     Assumes the texture is *already* saved into <directory> as <file_name>.png.
@@ -392,42 +395,41 @@ def save_textured_mesh(directory,
             amount to avoid artifacts.
     """
     if os.path.splitext(file_name)[1]:
-        raise ValueError(
-            'file_name to save_textured_mesh cannot contain extension')
+        raise ValueError("file_name to save_textured_mesh cannot contain extension")
 
-    if file_name.find(' ') != -1:
-        raise ValueError('file_name cannot contain space')
+    if file_name.find(" ") != -1:
+        raise ValueError("file_name cannot contain space")
 
-    obj_path = os.path.join(directory, file_name + '.obj')
-    mtl_path = os.path.join(directory, file_name + '.mtl')
+    obj_path = os.path.join(directory, file_name + ".obj")
+    mtl_path = os.path.join(directory, file_name + ".mtl")
 
-    with open(obj_path, 'w') as obj_file:
-        obj_file.write('mtllib ./{}.mtl\n'.format(file_name))
+    with open(obj_path, "w") as obj_file:
+        obj_file.write("mtllib ./{}.mtl\n".format(file_name))
 
         for pos in vertex_pos_px3:
-            obj_file.write('v {} {} {}\n'.format(pos[0], pos[1], pos[2]))
+            obj_file.write("v {} {} {}\n".format(pos[0], pos[1], pos[2]))
 
         for uv in tex_coord_px2:
             uv = uv * 0.5 + 0.5  # normalize from [-1, 1] to [0, 1]
             uv = uv * (1.0 - texture_bias * 2.0) + texture_bias
-            obj_file.write('vt {} {}\n'.format(
-                uv[0],
-                1.0 - uv[1] if flip_vertical else uv[1]
-            ))
+            obj_file.write("vt {} {}\n".format(uv[0], 1.0 - uv[1] if flip_vertical else uv[1]))
 
-        obj_file.write('usemtl material_0\n')
+        obj_file.write("usemtl material_0\n")
 
         for i in range(face_fx3.shape[0]):
             face = face_fx3[i] + 1
-            obj_file.write(
-                'f {0}/{0} {1}/{1} {2}/{2}\n'.format(face[0], face[1], face[2]))
+            obj_file.write("f {0}/{0} {1}/{1} {2}/{2}\n".format(face[0], face[1], face[2]))
 
-    with open(mtl_path, 'w') as mtl_file:
-        mtl_file.write('''newmtl material_0
+    with open(mtl_path, "w") as mtl_file:
+        mtl_file.write(
+            """newmtl material_0
 Ka 0.200000 0.200000 0.200000
 Kd 1.000000 1.000000 1.000000
 Ks 1.000000 1.000000 1.000000
-map_Kd {}.png'''.format(file_name))
+map_Kd {}.png""".format(
+                file_name
+            )
+        )
 
     return
 
@@ -435,20 +437,20 @@ map_Kd {}.png'''.format(file_name))
 def saveobjscale(meshfile, scale, maxratio, shift=None):
 
     mname, prefix = os.path.splitext(meshfile)
-    mnamenew = '%s-%.2f%s' % (mname, maxratio, prefix)
+    mnamenew = "%s-%.2f%s" % (mname, maxratio, prefix)
 
-    meshfp = open(meshfile, 'r')
-    meshfp2 = open(mnamenew, 'w')
+    meshfp = open(meshfile, "r")
+    meshfp2 = open(mnamenew, "w")
     for line in meshfp.readlines():
-        data = line.strip().split(' ')
+        data = line.strip().split(" ")
         data = [da for da in data if len(da) > 0]
         if len(data) != 4:
             meshfp2.write(line)
             continue
         else:
-            if data[0] == 'v':
+            if data[0] == "v":
                 p = [scale * float(d) for d in data[1:]]
-                meshfp2.write('v %f %f %f\n' % (p[0], p[1], p[2]))
+                meshfp2.write("v %f %f %f\n" % (p[0], p[1], p[2]))
             else:
                 meshfp2.write(line)
                 continue
@@ -459,10 +461,10 @@ def saveobjscale(meshfile, scale, maxratio, shift=None):
     return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import cv2
 
-    meshjson = '1.obj'
+    meshjson = "1.obj"
 
     # f begin from 0!!!
     pointnp_px3, facenp_fx3 = loadobj(meshjson)
@@ -481,7 +483,7 @@ if __name__ == '__main__':
     im = np.zeros(shape=(height, width), dtype=np.uint8)
     for cir in zip(w, h):
         cv2.circle(im, (int(cir[0]), int(cir[1])), 3, (255, 0, 0), -1)
-    cv2.imshow('', im)
+    cv2.imshow("", im)
     cv2.waitKey()
 
     # edge, neighbour and pfmtx
@@ -493,4 +495,4 @@ if __name__ == '__main__':
     pfmtx = face2pfmtx(facenp_fx3)
 
     # save
-    savemesh(pointnp_px3, facenp_fx3, '1s.obj')
+    savemesh(pointnp_px3, facenp_fx3, "1s.obj")

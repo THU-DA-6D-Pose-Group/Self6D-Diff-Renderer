@@ -27,11 +27,7 @@ import torch.nn
 from .interpolation import texinterpolation
 
 
-def fragmentshader(imnormal1_bxhxwx3,
-                   lightparam_bx9,
-                   imtexcoord_bxhxwx2,
-                   texture_bx3xthxtw,
-                   improb_bxhxwx1):
+def fragmentshader(imnormal1_bxhxwx3, lightparam_bx9, imtexcoord_bxhxwx2, texture_bx3xthxtw, improb_bxhxwx1):
 
     # light effect
     x = imnormal1_bxhxwx3[:, :, :, 0:1]
@@ -49,9 +45,7 @@ def fragmentshader(imnormal1_bxhxwx3,
     band23 = -0.1931371 * (x * z)
     band24 = 0.1365686 * (x * x - y * y)
 
-    bands = torch.cat((band0,
-                       band10, band11, band12,
-                       band20, band21, band22, band23, band24), dim=3)
+    bands = torch.cat((band0, band10, band11, band12, band20, band21, band22, band23, band24), dim=3)
     coef = torch.sum(bands * lightparam_bx9.view(-1, 1, 1, 9), dim=3, keepdim=True)
 
     # tex color

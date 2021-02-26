@@ -53,11 +53,10 @@ class VCRenderBatch(nn.Module):
             # first, MVP projection in vertexshader
             points_1xpx3, faces_fx3 = points[i]
             if single_intrinsic:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2]]
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2]]
             else:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2][i]]
-            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = \
-                perspective_projection(points_1xpx3, faces_fx3, cam_params)
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2][i]]
+            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = perspective_projection(points_1xpx3, faces_fx3, cam_params)
 
             ################################################################
             # normal
@@ -102,20 +101,29 @@ class VCRenderBatch(nn.Module):
                 color_1xfx12_list,
             )
         else:  # debug
-            imfeat_list, improb_list = multi_apply(linear_rasterizer, [self.width for _ in range(b)],
-                                                   [self.height for _ in range(b)], points3d_1xfx9_list,
-                                                   points2d_1xfx6_list, normalz_1xfx1_list, color_1xfx12_list,
-                                                   [0.02 for _ in range(b)], [30 for _ in range(b)],
-                                                   [1000 for _ in range(b)], [7000 for _ in range(b)],
-                                                   [True for _ in range(b)])  # the last one is debug
+            imfeat_list, improb_list = multi_apply(
+                linear_rasterizer,
+                [self.width for _ in range(b)],
+                [self.height for _ in range(b)],
+                points3d_1xfx9_list,
+                points2d_1xfx6_list,
+                normalz_1xfx1_list,
+                color_1xfx12_list,
+                [0.02 for _ in range(b)],
+                [30 for _ in range(b)],
+                [1000 for _ in range(b)],
+                [7000 for _ in range(b)],
+                [True for _ in range(b)],
+            )  # the last one is debug
         imfeat = torch.cat(imfeat_list, dim=0)  # [b,H,W,4]
         improb_bxhxwx1 = torch.cat(improb_list, dim=0)  # [b,H,W,1]
         imrender = imfeat[:, :, :, :3]  # (b,H,W,3), rgb
         hardmask = imfeat[:, :, :, 3:]  # (b,H,W,1) mask
         if False:
             import cv2
+
             hardmask_cpu = hardmask.detach().cpu().numpy()[0][:, :, 0]
-            cv2.imshow('hardmask', hardmask_cpu)
+            cv2.imshow("hardmask", hardmask_cpu)
 
         # return imrender, improb_1xhxwx1, normal1_1xFx3
         return imrender, improb_bxhxwx1, normal1_1xfx3_list, hardmask

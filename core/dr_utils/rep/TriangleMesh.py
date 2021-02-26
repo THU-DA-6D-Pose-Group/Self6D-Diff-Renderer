@@ -20,6 +20,7 @@ import torch.nn.functional as F
 
 
 from kaolin.helpers import _composedecorator
+
 # from kaolin.rep.Mesh import Mesh
 from .Mesh import Mesh
 
@@ -27,15 +28,28 @@ from .Mesh import Mesh
 class TriangleMesh(Mesh):
     """ Abstract class to represent 3D Trianlge meshes. """
 
-    def __init__(self, vertices: torch.Tensor, faces: torch.Tensor,
-                 uvs: torch.Tensor, face_textures: torch.Tensor,
-                 textures: torch.Tensor, edges: torch.Tensor, edge2key: dict,
-                 vv: torch.Tensor, vv_count: torch.Tensor,
-                 vf: torch.Tensor, vf_count: torch.Tensor,
-                 ve: torch.Tensor, ve_count: torch.Tensor,
-                 ff: torch.Tensor, ff_count: torch.Tensor,
-                 ef: torch.Tensor, ef_count: torch.Tensor,
-                 ee: torch.Tensor, ee_count: torch.Tensor):
+    def __init__(
+        self,
+        vertices: torch.Tensor,
+        faces: torch.Tensor,
+        uvs: torch.Tensor,
+        face_textures: torch.Tensor,
+        textures: torch.Tensor,
+        edges: torch.Tensor,
+        edge2key: dict,
+        vv: torch.Tensor,
+        vv_count: torch.Tensor,
+        vf: torch.Tensor,
+        vf_count: torch.Tensor,
+        ve: torch.Tensor,
+        ve_count: torch.Tensor,
+        ff: torch.Tensor,
+        ff_count: torch.Tensor,
+        ef: torch.Tensor,
+        ef_count: torch.Tensor,
+        ee: torch.Tensor,
+        ee_count: torch.Tensor,
+    ):
 
         # Vertices of the mesh
         self.vertices = vertices
@@ -92,11 +106,10 @@ class TriangleMesh(Mesh):
 
         """
 
-        assert matrix.dim() == 2, 'Need matrix to contain exactly 2 dimensions'
+        assert matrix.dim() == 2, "Need matrix to contain exactly 2 dimensions"
         magnitude = torch.sqrt(torch.sum(torch.pow(matrix, 2), dim=1))
         valid_inds = magnitude > 0
-        matrix[valid_inds] = torch.div(matrix[valid_inds], magnitude[
-                                       valid_inds].unsqueeze(1))
+        matrix[valid_inds] = torch.div(matrix[valid_inds], magnitude[valid_inds].unsqueeze(1))
         return matrix
 
     def compute_vertex_normals(self):
@@ -105,21 +118,15 @@ class TriangleMesh(Mesh):
         # Let each face ordering be denoted a, b, c, d. For consistent order,
         # we vectorize operations, so that a (for example) denotes the first
         # vertex of each face in the mesh.
-        a = torch.index_select(self.vertices, dim=0,
-                               index=self.faces[:, 0].flatten())
-        b = torch.index_select(self.vertices, dim=0,
-                               index=self.faces[:, 1].flatten())
-        c = torch.index_select(self.vertices, dim=0,
-                               index=self.faces[:, 2].flatten())
+        a = torch.index_select(self.vertices, dim=0, index=self.faces[:, 0].flatten())
+        b = torch.index_select(self.vertices, dim=0, index=self.faces[:, 1].flatten())
+        c = torch.index_select(self.vertices, dim=0, index=self.faces[:, 2].flatten())
 
         # Compute vertex normals.
         # Eg. Normals for vertices 'a' are given by (b-a) x (c - a)
-        vn_a = TriangleMesh.normalize_zerosafe(
-            torch.cross(b - a, c - a, dim=1))
-        vn_b = TriangleMesh.normalize_zerosafe(
-            torch.cross(c - b, a - b, dim=1))
-        vn_c = TriangleMesh.normalize_zerosafe(
-            torch.cross(a - c, b - c, dim=1))
+        vn_a = TriangleMesh.normalize_zerosafe(torch.cross(b - a, c - a, dim=1))
+        vn_b = TriangleMesh.normalize_zerosafe(torch.cross(c - b, a - b, dim=1))
+        vn_c = TriangleMesh.normalize_zerosafe(torch.cross(a - c, b - c, dim=1))
 
         # Using the above, we have duplicate vertex normals (since a vertex is
         # usually a part of more than one face). We only select the first face
@@ -130,8 +137,7 @@ class TriangleMesh(Mesh):
         # the index of the vertex in that selected face. (i.e., is the
         # selected vertex the 'a', the 'b', the 'c', or the 'd' vertex of the
         # face?).
-        vertex_inds = torch.arange(self.vertices.shape[0]).unsqueeze(
-            1).to(self.vertices.device)
+        vertex_inds = torch.arange(self.vertices.shape[0]).unsqueeze(1).to(self.vertices.device)
         # Mask that specifies which index of each face to look at, for the
         # vertex we wish to find.
         mask_abc = self.faces[face_inds] == vertex_inds.repeat(1, 3)
@@ -157,27 +163,22 @@ class TriangleMesh(Mesh):
 
         # Let each face be denoted (a, b, c). We vectorize operations, so,
         # we take `a` to mean the "first vertex of every face", and so on.
-        a = torch.index_select(self.vertices, dim=0,
-                               index=self.faces[:, 0].flatten())
-        b = torch.index_select(self.vertices, dim=0,
-                               index=self.faces[:, 1].flatten())
-        c = torch.index_select(self.vertices, dim=0,
-                               index=self.faces[:, 2].flatten())
+        a = torch.index_select(self.vertices, dim=0, index=self.faces[:, 0].flatten())
+        b = torch.index_select(self.vertices, dim=0, index=self.faces[:, 1].flatten())
+        c = torch.index_select(self.vertices, dim=0, index=self.faces[:, 2].flatten())
 
         # Compute vertex normals (for each face). Note the the same vertex
         # can have different normals for each face.
         # Eg. Normals for vertices 'a' are given by (b-a) x (c - a)
-        vn_a = TriangleMesh.normalize_zerosafe(
-            torch.cross(b - a, c - a, dim=1))
-        vn_b = TriangleMesh.normalize_zerosafe(
-            torch.cross(c - b, a - b, dim=1))
-        vn_c = TriangleMesh.normalize_zerosafe(
-            torch.cross(a - c, b - c, dim=1))
+        vn_a = TriangleMesh.normalize_zerosafe(torch.cross(b - a, c - a, dim=1))
+        vn_b = TriangleMesh.normalize_zerosafe(torch.cross(c - b, a - b, dim=1))
+        vn_c = TriangleMesh.normalize_zerosafe(torch.cross(a - c, b - c, dim=1))
         # Add and normalize the normals (for a more robust estimate)
         face_normals = vn_a + vn_b + vn_c
         face_normals_norm = face_normals.norm(dim=1)
-        face_normals = face_normals / torch.where(face_normals_norm > 0,
-            face_normals_norm, torch.ones_like(face_normals_norm)).view(-1, 1)
+        face_normals = face_normals / torch.where(
+            face_normals_norm > 0, face_normals_norm, torch.ones_like(face_normals_norm)
+        ).view(-1, 1)
         return face_normals
 
     def compute_edge_lengths(self):
@@ -186,10 +187,8 @@ class TriangleMesh(Mesh):
         self.edges = self.edges.to(self.vertices.device)
         # Let each edge be denoted (a, b). We perform a vectorized select
         # and then compute the magnitude of the vector b - a.
-        a = torch.index_select(self.vertices, dim=0,
-                               index=self.edges[:, 0].flatten())
-        b = torch.index_select(self.vertices, dim=0,
-                               index=self.edges[:, 1].flatten())
+        a = torch.index_select(self.vertices, dim=0, index=self.edges[:, 0].flatten())
+        b = torch.index_select(self.vertices, dim=0, index=self.edges[:, 1].flatten())
         return (b - a).norm(dim=1)
 
     def compute_face_areas(self):
@@ -202,68 +201,72 @@ class TriangleMesh(Mesh):
         raise NotImplementedError
 
     def save_mesh(self, filename: str):
-        r""" Save a mesh to a wavefront .obj file format
+        r"""Save a mesh to a wavefront .obj file format
 
         Args:
             filename (str) : target filename
 
         """
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
 
             # write vertices
             for vert in self.vertices:
-                f.write('v %f %f %f\n' % tuple(vert))
+                f.write("v %f %f %f\n" % tuple(vert))
             # write faces
             for face in self.faces:
-                f.write('f %d %d %d\n' % tuple(face + 1))
+                f.write("f %d %d %d\n" % tuple(face + 1))
 
     def sample(self, num_samples: int, eps: float = 1e-10):
-        r""" Uniformly samples the surface of a mesh.
+        r"""Uniformly samples the surface of a mesh.
 
-            Args:
-                num_samples (int): number of points to sample
-                eps (float): a small number to prevent division by zero
-                             for small surface areas.
+        Args:
+            num_samples (int): number of points to sample
+            eps (float): a small number to prevent division by zero
+                         for small surface areas.
 
-            Returns:
-                (torch.Tensor, torch.Tensor) uniformly sampled points and
-                    the face idexes which each point corresponds to.
+        Returns:
+            (torch.Tensor, torch.Tensor) uniformly sampled points and
+                the face idexes which each point corresponds to.
 
-            Example:
-                >>> points, chosen_faces = mesh.sample(10)
-                >>> points
-                tensor([[ 0.0293,  0.2179,  0.2168],
-                        [ 0.2003, -0.3367,  0.2187],
-                        [ 0.2152, -0.0943,  0.1907],
-                        [-0.1852,  0.1686, -0.0522],
-                        [-0.2167,  0.3171,  0.0737],
-                        [ 0.2219, -0.0289,  0.1531],
-                        [ 0.2217, -0.0115,  0.1247],
-                        [-0.1400,  0.0364, -0.1618],
-                        [ 0.0658, -0.0310, -0.2198],
-                        [ 0.1926, -0.1867, -0.2153]])
-                >>> chosen_faces
-                tensor([ 953,  38,  6, 3480,  563,  393,  395, 3309, 373, 271])
+        Example:
+            >>> points, chosen_faces = mesh.sample(10)
+            >>> points
+            tensor([[ 0.0293,  0.2179,  0.2168],
+                    [ 0.2003, -0.3367,  0.2187],
+                    [ 0.2152, -0.0943,  0.1907],
+                    [-0.1852,  0.1686, -0.0522],
+                    [-0.2167,  0.3171,  0.0737],
+                    [ 0.2219, -0.0289,  0.1531],
+                    [ 0.2217, -0.0115,  0.1247],
+                    [-0.1400,  0.0364, -0.1618],
+                    [ 0.0658, -0.0310, -0.2198],
+                    [ 0.1926, -0.1867, -0.2153]])
+            >>> chosen_faces
+            tensor([ 953,  38,  6, 3480,  563,  393,  395, 3309, 373, 271])
         """
 
         if self.vertices.is_cuda:
-            dist_uni = torch.distributions.Uniform(
-                torch.tensor([0.0]).cuda(), torch.tensor([1.0]).cuda())
+            dist_uni = torch.distributions.Uniform(torch.tensor([0.0]).cuda(), torch.tensor([1.0]).cuda())
         else:
-            dist_uni = torch.distributions.Uniform(
-                torch.tensor([0.0]), torch.tensor([1.0]))
+            dist_uni = torch.distributions.Uniform(torch.tensor([0.0]), torch.tensor([1.0]))
 
         # calculate area of each face
-        x1, x2, x3 = torch.split(torch.index_select(
-            self.vertices, 0, self.faces[:, 0]) - torch.index_select(
-            self.vertices, 0, self.faces[:, 1]), 1, dim=1)
-        y1, y2, y3 = torch.split(torch.index_select(
-            self.vertices, 0, self.faces[:, 1]) - torch.index_select(
-            self.vertices, 0, self.faces[:, 2]), 1, dim=1)
-        a = (x2 * y3 - x3 * y2)**2
-        b = (x3 * y1 - x1 * y3)**2
-        c = (x1 * y2 - x2 * y1)**2
+        x1, x2, x3 = torch.split(
+            torch.index_select(self.vertices, 0, self.faces[:, 0])
+            - torch.index_select(self.vertices, 0, self.faces[:, 1]),
+            1,
+            dim=1,
+        )
+        y1, y2, y3 = torch.split(
+            torch.index_select(self.vertices, 0, self.faces[:, 1])
+            - torch.index_select(self.vertices, 0, self.faces[:, 2]),
+            1,
+            dim=1,
+        )
+        a = (x2 * y3 - x3 * y2) ** 2
+        b = (x3 * y1 - x1 * y3) ** 2
+        c = (x1 * y2 - x2 * y1) ** 2
         Areas = torch.sqrt(a + b + c) / 2
         # percentage of each face w.r.t. full surface area
         Areas = Areas / (torch.sum(Areas) + eps)
@@ -286,17 +289,16 @@ class TriangleMesh(Mesh):
     def compute_adjacency_matrix_full(self):
         r"""Calcualtes a binary adjacency matrix for a mesh.
 
-            Returns:
-                (torch.Tensor) : binary adjacency matrix
+        Returns:
+            (torch.Tensor) : binary adjacency matrix
 
-            Example:
-                >>> mesh = TriangleMesh.from_obj('model.obj')
-                >>> adj_info = mesh.compute_adjacency_matrix_full()
-                >>> neighborhood_sum = torch.mm( adj_info, mesh.vertices)
+        Example:
+            >>> mesh = TriangleMesh.from_obj('model.obj')
+            >>> adj_info = mesh.compute_adjacency_matrix_full()
+            >>> neighborhood_sum = torch.mm( adj_info, mesh.vertices)
         """
 
-        adj = torch.zeros((self.vertices.shape[0], self.vertices.shape[0])).to(
-            self.vertices.device)
+        adj = torch.zeros((self.vertices.shape[0], self.vertices.shape[0])).to(self.vertices.device)
         v1 = self.faces[:, 0]
         v2 = self.faces[:, 1]
         v3 = self.faces[:, 2]
@@ -324,21 +326,21 @@ class TriangleMesh(Mesh):
         """
         data = np.load(filename)
 
-        vertices = torch.FloatTensor(data['vertices'])
-        faces = torch.LongTensor(data['faces'].astype(int))
+        vertices = torch.FloatTensor(data["vertices"])
+        faces = torch.LongTensor(data["faces"].astype(int))
 
         return TriangleMesh.from_tensors(vertices, faces)
 
     def compute_adjacency_matrix_sparse(self):
-        r""" Calcualtes a sparse adjacency matrix for a mess
+        r"""Calcualtes a sparse adjacency matrix for a mess
 
-            Returns:
-                (torch.sparse.Tensor) : sparse adjacency matrix
+        Returns:
+            (torch.sparse.Tensor) : sparse adjacency matrix
 
-            Example:
-                >>> mesh = Mesh.from_obj('model.obj')
-                >>> adj_info = mesh.compute_adjacency_matrix_sparse()
-                >>> neighborhood_sum = torch.sparse.mm(adj_info, mesh.vertices)
+        Example:
+            >>> mesh = Mesh.from_obj('model.obj')
+            >>> adj_info = mesh.compute_adjacency_matrix_sparse()
+            >>> neighborhood_sum = torch.sparse.mm(adj_info, mesh.vertices)
 
         """
 
@@ -350,8 +352,7 @@ class TriangleMesh(Mesh):
 
             vert_len = self.vertices.shape[0]
             identity_indices = torch.arange(vert_len).view(-1, 1).to(v1.device)
-            identity = torch.cat(
-                (identity_indices, identity_indices), dim=1).to(v1.device)
+            identity = torch.cat((identity_indices, identity_indices), dim=1).to(v1.device)
             identity = torch.cat((identity, identity))
 
             i_1 = torch.cat((v1, v2), dim=1)
@@ -362,9 +363,7 @@ class TriangleMesh(Mesh):
 
             i_5 = torch.cat((v3, v2), dim=1)
             i_6 = torch.cat((v3, v1), dim=1)
-            indices = torch.cat(
-                (identity, i_1, i_2, i_3, i_4, i_5, i_6), dim=0).t()
-            values = torch.ones(indices.shape[1]).to(indices.device) * .5
-            self.adj = torch.sparse.FloatTensor(
-                indices, values, torch.Size([vert_len, vert_len]))
+            indices = torch.cat((identity, i_1, i_2, i_3, i_4, i_5, i_6), dim=0).t()
+            values = torch.ones(indices.shape[1]).to(indices.device) * 0.5
+            self.adj = torch.sparse.FloatTensor(indices, values, torch.Size([vert_len, vert_len]))
         return self.adj.clone()

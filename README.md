@@ -13,10 +13,11 @@ We mainly extend the implementation of DIB-Renderer from [kaolin](https://github
 
 ## Requirements
 1. Ubuntu >= 16.04, CUDA >= 10.0, Python >= 3.6, PyTorch >=1.3
-2. kaolin
+2. kaolin (currently only support <= v0.1)
     ```
     git clone https://github.com/NVIDIAGameWorks/kaolin.git
     cd kaolin
+    git checkout v0.1
     python setup.py develop
     ```
 

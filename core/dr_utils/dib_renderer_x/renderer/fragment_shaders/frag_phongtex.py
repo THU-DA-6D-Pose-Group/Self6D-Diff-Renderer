@@ -28,13 +28,16 @@ from .interpolation import texinterpolation
 
 
 #####################################################
-def fragmentshader(imnormal1_bxhxwx3,
-                   lightdirect1_bx3,
-                   eyedirect1_bxhxwx3,
-                   material_bx3x3, shininess_bx1,
-                   imtexcoord_bxhxwx2, texture_bx3xthxtw,
-                   improb_bxhxwx1,
-                   ):
+def fragmentshader(
+    imnormal1_bxhxwx3,
+    lightdirect1_bx3,
+    eyedirect1_bxhxwx3,
+    material_bx3x3,
+    shininess_bx1,
+    imtexcoord_bxhxwx2,
+    texture_bx3xthxtw,
+    improb_bxhxwx1,
+):
     # parallel light
     lightdirect1_bx1x1x3 = lightdirect1_bx3.view(-1, 1, 1, 3)
 

@@ -12,8 +12,7 @@ import numpy as np
 
 ##################################################################
 class TexRenderMulti(nn.Module):
-
-    def __init__(self, height, width, filtering='nearest'):
+    def __init__(self, height, width, filtering="nearest"):
         super(TexRenderMulti, self).__init__()
 
         self.height = height
@@ -48,17 +47,16 @@ class TexRenderMulti(nn.Module):
             # first, MVP projection in vertexshader
             points_1xpx3, faces_fx3 = points[i]
             if single_intrinsic:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2]]
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2]]
             else:
-                cam_params = [cameras[0][i:i + 1], cameras[1][i:i + 1], cameras[2][i]]
+                cam_params = [cameras[0][i : i + 1], cameras[1][i : i + 1], cameras[2][i]]
             # use faces_fx3 as ft_fx3 if not given
             if ft_fx3 is None:
                 ft_fx3_single = faces_fx3
             else:
                 ft_fx3_single = ft_fx3[i]
 
-            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = \
-                perspective_projection(points_1xpx3, faces_fx3, cam_params)
+            points3d_1xfx9, points2d_1xfx6, normal_1xfx3 = perspective_projection(points_1xpx3, faces_fx3, cam_params)
 
             ################################################################
             # normal
@@ -92,9 +90,14 @@ class TexRenderMulti(nn.Module):
         ren_masks = []
         ren_probs = []
         for dist_ind in dist_inds:  # NOTE: not True but very close
-            imfeat, improb_1xhxwx1_i = linear_rasterizer(self.width, self.height, points3d_1xfx9_list[dist_ind],
-                                                         points2d_1xfx6_list[dist_ind], normalz_1xfx1_list[dist_ind],
-                                                         uv_1xfx9_list[dist_ind])
+            imfeat, improb_1xhxwx1_i = linear_rasterizer(
+                self.width,
+                self.height,
+                points3d_1xfx9_list[dist_ind],
+                points2d_1xfx6_list[dist_ind],
+                normalz_1xfx1_list[dist_ind],
+                uv_1xfx9_list[dist_ind],
+            )
             imtexcoords = imfeat[:, :, :, :2]  # (1,H,W,2)
             hardmask = imfeat[:, :, :, 2:3]  # (1,H,W,1) mask
             # fragrement shader
