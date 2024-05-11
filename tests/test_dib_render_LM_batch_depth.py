@@ -8,8 +8,9 @@ import cv2
 import numpy as np
 import torch
 from tqdm import tqdm
+import matplotlib
+
 import matplotlib.pyplot as plt
-import mmcv
 from transforms3d.axangles import axangle2mat
 from transforms3d.quaternions import mat2quat
 
@@ -20,11 +21,12 @@ sys.path.insert(0, osp.join(cur_dir, "../"))
 from core.dr_utils.dib_renderer_x import DIBRenderer
 from core.dr_utils.dr_utils import load_objs, render_dib_vc_batch
 
+matplotlib.use("TkAgg")
 
 output_directory = osp.join(cur_dir, "../output/results")
 
 output_directory_dib = osp.join(output_directory, "dib")
-mmcv.mkdir_or_exist(output_directory_dib)
+os.makedirs(output_directory_dib, exist_ok=True)
 
 model_root = osp.join(cur_dir, "../data/lm_models/")
 HEIGHT = 480
@@ -83,7 +85,7 @@ def grid_show(ims, titles=None, row=1, col=3, dpi=200, save_path=None, title_fon
         plt.show()
     else:
         if save_path is not None:
-            mmcv.mkdir_or_exist(osp.dirname(save_path))
+            os.makedirs(osp.dirname(save_path), exist_ok=True)
             plt.savefig(save_path)
     return fig
 
@@ -130,8 +132,8 @@ def main():
     quats = [quat, quat.copy(), quat.copy(), quat.copy(), quat.copy()]
     ts = [t, t2, t3, t4, t5]
 
-    Rs = torch.tensor(Rs).to(**tensor_args)
-    ts = torch.tensor(ts).to(**tensor_args)
+    Rs = torch.as_tensor(np.asarray(Rs)).to(**tensor_args)
+    ts = torch.as_tensor(np.asarray(ts)).to(**tensor_args)
     # poses = [np.hstack((_R, _t.reshape(3, 1))) for _R, _t in zip(Rs, ts)]
     obj_ids = np.random.choice(list(range(0, len(objs))), len(Rs))
     Ks = [K for _ in Rs]
